@@ -596,7 +596,7 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> with Ticker
               child: Icon(Icons.admin_panel_settings, color: Colors.white, size: 20),
             ),
             SizedBox(width: 12),
-            Text('WarlNest Admin', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
+            Text('Domify Admin', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
           ],
         ),
         actions: [

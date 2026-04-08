@@ -20,15 +20,15 @@ class _OnboardingScreenState extends State<OnboardingScreen> with TickerProvider
   final List<OnboardingPage> _pages = [
     OnboardingPage(
       title: 'Welcome to ',
-      highlightedWord: 'WarlNest',
+      highlightedWord: 'Domify',
       description: 'Your trusted platform for verified property listings across Uganda.\nSmart properties, zero scams.',
       icon: Icons.home_rounded,
       gradient: [Color(0xFFFAFAFA), Color(0xFFF0F0F0)],
     ),
     OnboardingPage(
-      title: 'Blockchain Verified',
+      title: 'Professionally Verified',
       highlightedWord: 'Properties',
-      description: 'Every listing is secured with blockchain technology and AI verification to eliminate fraud.',
+      description: 'Every listing is professionally verified to eliminate fraud and ensure peace of mind.',
       icon: Icons.verified_user_rounded,
       gradient: [Color(0xFFE8F5E9), Color(0xFFD4EED7)],
     ),
@@ -300,7 +300,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> with TickerProvider
 
             SizedBox(height: 56),
 
-            // Title with gradient text for WarlNest
+            // Title with gradient text for Domify
             RichText(
               textAlign: TextAlign.center,
               text: TextSpan(

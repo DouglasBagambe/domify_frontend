@@ -244,14 +244,14 @@ class SettingsScreen extends StatelessWidget {
                   onTap: () {
                     showAboutDialog(
                       context: context,
-                      applicationName: 'Rent App',
+                      applicationName: 'Domify',
                       applicationVersion: '1.0.0',
                       applicationIcon: const FlutterLogo(size: 64),
-                      applicationLegalese: '© 2024 Rent App. All rights reserved.',
+                      applicationLegalese: '© 2024 Domify. All rights reserved.',
                       children: [
                         const SizedBox(height: 16),
                         const Text(
-                          'Rent App is a modern real estate platform that helps you find your perfect property in Uganda. Browse through thousands of listings, compare properties, and book viewing appointments with ease.',
+                          'Domify is a modern real estate platform that helps you find your perfect property in Uganda. Browse through thousands of listings, compare properties, and book viewing appointments with ease.',
                         ),
                       ],
                     );
