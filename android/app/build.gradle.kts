@@ -5,7 +5,7 @@ plugins {
 }
 
 android {
-    namespace = "com.uganda.rent.rent_app"
+    namespace = "com.nilebitlabs.domify"
     compileSdk = 35  // Updated to 35
     ndkVersion = "27.0.12077973"
 
@@ -26,7 +26,7 @@ android {
     }
 
     defaultConfig {
-        applicationId = "com.uganda.rent.rent_app"
+        applicationId = "com.nilebitlabs.domify"
         minSdk = 21
         targetSdk = 35  // Updated to 35
         versionCode = 1

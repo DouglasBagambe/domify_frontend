@@ -3,8 +3,7 @@ import 'package:http/http.dart' as http;
 import '../models/property_model.dart';
 
 class ApiService {
-  // Use loopback address for local development
-  static const String baseUrl = 'http://127.0.0.1:3000/api'; // Localhost for same-machine connections
+  static const String baseUrl = 'https://domify.onrender.com/api';
 
   // Get all properties (static method to match home screen usage)
   static Future<List<Property>> getAllProperties() async {
