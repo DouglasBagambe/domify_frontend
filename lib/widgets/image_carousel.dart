@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:cached_network_image/cached_network_image.dart';
+import 'package:shimmer/shimmer.dart';
 
 class ImageCarousel extends StatefulWidget {
   final List<String> images;
@@ -11,7 +11,7 @@ class ImageCarousel extends StatefulWidget {
   const ImageCarousel({
     Key? key,
     required this.images,
-    this.height = 200,
+    this.height = double.infinity,
     this.aspectRatio = 16 / 9,
     this.showIndicators = true,
     this.autoPlay = true,
@@ -35,7 +35,7 @@ class _ImageCarouselState extends State<ImageCarousel> {
   }
 
   void _startAutoPlay() {
-    Future.delayed(const Duration(seconds: 3), () {
+    Future.delayed(const Duration(seconds: 6), () {
       if (mounted && widget.autoPlay) {
         if (_currentPage < widget.images.length - 1) {
           _pageController.nextPage(
@@ -78,6 +78,16 @@ class _ImageCarouselState extends State<ImageCarousel> {
               return Image.network(
                 widget.images[index],
                 fit: BoxFit.cover,
+                loadingBuilder: (context, child, loadingProgress) {
+                  if (loadingProgress == null) return child;
+                  return Shimmer.fromColors(
+                    baseColor: Colors.grey[300]!,
+                    highlightColor: Colors.grey[100]!,
+                    child: Container(
+                      color: Colors.white,
+                    ),
+                  );
+                },
                 errorBuilder: (context, error, stackTrace) {
                   return Container(
                     color: Colors.grey[200],

@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_svg/flutter_svg.dart';
+import 'package:shimmer/shimmer.dart';
 
 class LoadingScreen extends StatelessWidget {
   final String? message;
-  
+
   const LoadingScreen({
     Key? key,
     this.message,
@@ -11,110 +11,207 @@ class LoadingScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      decoration: BoxDecoration(
-        gradient: LinearGradient(
-          begin: Alignment.topCenter,
-          end: Alignment.bottomCenter,
-          colors: [
-            Theme.of(context).colorScheme.primary.withOpacity(0.1),
-            Theme.of(context).colorScheme.surface,
-          ],
-        ),
-      ),
-      child: Center(
+    return SafeArea(
+      child: SingleChildScrollView(
+        physics: const NeverScrollableScrollPhysics(),
         child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
+          crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Container(
-              padding: const EdgeInsets.all(32),
-              decoration: BoxDecoration(
-                color: Theme.of(context).colorScheme.surface,
-                shape: BoxShape.circle,
-                boxShadow: [
-                  BoxShadow(
-                    color: Theme.of(context).colorScheme.primary.withOpacity(0.2),
-                    blurRadius: 30,
-                    spreadRadius: 5,
-                  ),
-                ],
-              ),
-              child: SizedBox(
-                width: 80,
-                height: 80,
-                child: _buildAnimatedWLogo(context),
+            // App bar skeleton
+            Padding(
+              padding: const EdgeInsets.fromLTRB(16, 16, 16, 0),
+              child: Shimmer.fromColors(
+                baseColor: Colors.grey[300]!,
+                highlightColor: Colors.grey[100]!,
+                child: Row(
+                  children: [
+                    Container(
+                      width: 40,
+                      height: 40,
+                      decoration: BoxDecoration(
+                        color: Colors.white,
+                        borderRadius: BorderRadius.circular(10),
+                      ),
+                    ),
+                    const SizedBox(width: 12),
+                    Container(width: 80, height: 20, color: Colors.white),
+                    const Spacer(),
+                    Container(
+                      width: 36,
+                      height: 36,
+                      decoration: BoxDecoration(
+                        color: Colors.white,
+                        borderRadius: BorderRadius.circular(10),
+                      ),
+                    ),
+                  ],
+                ),
               ),
             ),
-            const SizedBox(height: 32),
-            Text(
-              message ?? 'Finding Your Perfect Home...',
-              style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                color: Theme.of(context).colorScheme.onSurface.withOpacity(0.8),
-                fontWeight: FontWeight.w600,
+            const SizedBox(height: 20),
+
+            // Hero banner skeleton
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 16),
+              child: Shimmer.fromColors(
+                baseColor: Colors.grey[300]!,
+                highlightColor: Colors.grey[100]!,
+                child: Container(
+                  height: 180,
+                  decoration: BoxDecoration(
+                    color: Colors.white,
+                    borderRadius: BorderRadius.circular(20),
+                  ),
+                ),
               ),
-              textAlign: TextAlign.center,
+            ),
+            const SizedBox(height: 20),
+
+            // Quick actions skeleton
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 16),
+              child: Shimmer.fromColors(
+                baseColor: Colors.grey[300]!,
+                highlightColor: Colors.grey[100]!,
+                child: Row(
+                  children: List.generate(4, (i) {
+                    return Expanded(
+                      child: Container(
+                        height: 80,
+                        margin: EdgeInsets.only(right: i < 3 ? 8 : 0),
+                        decoration: BoxDecoration(
+                          color: Colors.white,
+                          borderRadius: BorderRadius.circular(16),
+                        ),
+                      ),
+                    );
+                  }),
+                ),
+              ),
+            ),
+            const SizedBox(height: 20),
+
+            // Category pills skeleton
+            SizedBox(
+              height: 40,
+              child: Shimmer.fromColors(
+                baseColor: Colors.grey[300]!,
+                highlightColor: Colors.grey[100]!,
+                child: ListView.builder(
+                  scrollDirection: Axis.horizontal,
+                  padding: const EdgeInsets.symmetric(horizontal: 16),
+                  itemCount: 5,
+                  itemBuilder: (_, i) {
+                    return Container(
+                      width: 80,
+                      height: 36,
+                      margin: const EdgeInsets.only(right: 10),
+                      decoration: BoxDecoration(
+                        color: Colors.white,
+                        borderRadius: BorderRadius.circular(14),
+                      ),
+                    );
+                  },
+                ),
+              ),
+            ),
+            const SizedBox(height: 24),
+
+            // Section header skeleton
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 16),
+              child: Shimmer.fromColors(
+                baseColor: Colors.grey[300]!,
+                highlightColor: Colors.grey[100]!,
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Container(width: 160, height: 18, color: Colors.white),
+                    const SizedBox(height: 6),
+                    Container(width: 220, height: 12, color: Colors.white),
+                  ],
+                ),
+              ),
+            ),
+            const SizedBox(height: 16),
+
+            // Property cards skeleton (horizontal)
+            SizedBox(
+              height: 240,
+              child: Shimmer.fromColors(
+                baseColor: Colors.grey[300]!,
+                highlightColor: Colors.grey[100]!,
+                child: ListView.builder(
+                  scrollDirection: Axis.horizontal,
+                  padding: const EdgeInsets.symmetric(horizontal: 16),
+                  itemCount: 3,
+                  itemBuilder: (_, i) {
+                    return Container(
+                      width: 220,
+                      margin: const EdgeInsets.only(right: 12),
+                      decoration: BoxDecoration(
+                        color: Colors.white,
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                    );
+                  },
+                ),
+              ),
+            ),
+            const SizedBox(height: 24),
+
+            // Second section
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 16),
+              child: Shimmer.fromColors(
+                baseColor: Colors.grey[300]!,
+                highlightColor: Colors.grey[100]!,
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Container(width: 140, height: 18, color: Colors.white),
+                    const SizedBox(height: 6),
+                    Container(width: 200, height: 12, color: Colors.white),
+                  ],
+                ),
+              ),
+            ),
+            const SizedBox(height: 16),
+
+            // Grid skeleton
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 16),
+              child: Shimmer.fromColors(
+                baseColor: Colors.grey[300]!,
+                highlightColor: Colors.grey[100]!,
+                child: Row(
+                  children: [
+                    Expanded(
+                      child: Container(
+                        height: 200,
+                        decoration: BoxDecoration(
+                          color: Colors.white,
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                      ),
+                    ),
+                    const SizedBox(width: 12),
+                    Expanded(
+                      child: Container(
+                        height: 200,
+                        decoration: BoxDecoration(
+                          color: Colors.white,
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
             ),
           ],
         ),
       ),
-    );
-  }
-
-  Widget _buildAnimatedWLogo(BuildContext context) {
-    // Get the current theme colors to dynamically color the SVG
-    final primaryColor = Theme.of(context).colorScheme.primary;
-    final primaryColorHex = '#${primaryColor.value.toRadixString(16).substring(2)}';
-    
-    const svgString = '''
-<svg viewBox="0 0 400 400" xmlns="http://www.w3.org/2000/svg">
-  <defs>
-    <!-- Gradient for modern look -->
-    <linearGradient id="wGradient" x1="0%" y1="0%" x2="100%" y2="100%">
-      <stop offset="0%" style="stop-color:#178F5B;stop-opacity:1" />
-      <stop offset="100%" style="stop-color:#1A3C6E;stop-opacity:1" />
-    </linearGradient>
-    
-    <!-- Glow effect -->
-    <filter id="glow">
-      <feGaussianBlur stdDeviation="3" result="coloredBlur"/>
-      <feMerge>
-        <feMergeNode in="coloredBlur"/>
-        <feMergeNode in="SourceGraphic"/>
-      </feMerge>
-    </filter>
-  </defs>
-  
-  <!-- LOGO PERFECTLY CENTERED -->
-  <g id="epicIcon" transform="translate(200, 200)">
-    
-    <!-- Extended roof line - FULL POINTS VISIBLE -->
-    <g transform="translate(0, -80)">
-      <path d="M -110 50 L 0 -40 L 110 50" 
-            stroke="url(#wGradient)" 
-            stroke-width="20" 
-            fill="none" 
-            stroke-linecap="round" 
-            stroke-linejoin="round"
-            filter="url(#glow)"/>
-    </g>
-    
-    <!-- Modern "W" -->
-    <g transform="translate(0, 20)">
-      <path d="M -70 -50 L -46 38 L -24 -15 L 0 32 L 24 -15 L 46 38 L 70 -50" 
-            stroke="url(#wGradient)" 
-            stroke-width="20" 
-            fill="none" 
-            stroke-linecap="round" 
-            stroke-linejoin="round"
-            filter="url(#glow)"/>
-    </g>
-  </g>
-</svg>
-    ''';
-
-    return SvgPicture.string(
-      svgString,
-      fit: BoxFit.contain,
     );
   }
 }
