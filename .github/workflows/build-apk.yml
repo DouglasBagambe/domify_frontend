@@ -20,12 +20,23 @@ jobs:
           distribution: 'temurin'
           java-version: '17'
 
+      - name: Set up Android SDK
+        uses: android-actions/setup-android@v3
+
       - name: Set up Flutter
         uses: subosito/flutter-action@v2
         with:
           flutter-version: '3.41.6'
           channel: 'stable'
           cache: true
+
+      - name: Install Android 35 SDK packages
+        run: |
+          yes | sdkmanager --licenses
+          sdkmanager --install "platforms;android-35" "build-tools;35.0.0"
+
+      - name: Clean Flutter build artifacts
+        run: flutter clean
 
       - name: Get Flutter dependencies
         run: flutter pub get

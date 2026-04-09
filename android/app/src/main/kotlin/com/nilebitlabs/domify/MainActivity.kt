@@ -1,4 +1,4 @@
-package com.uganda.rent.rent_app
+package com.nilebitlabs.domify
 
 import io.flutter.embedding.android.FlutterActivity
 
