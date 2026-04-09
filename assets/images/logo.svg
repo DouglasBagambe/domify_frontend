@@ -56,7 +56,7 @@
           fill="url(#wGradient)"
           letter-spacing="-3"
           filter="url(#strongShadow)">
-      Warl<tspan fill="#a17324ff" font-weight="900">Nest</tspan>
+      Dom<tspan fill="#a17324ff" font-weight="900">ify</tspan>
     </text>
     
     <!-- Bold underline with gradient -->
