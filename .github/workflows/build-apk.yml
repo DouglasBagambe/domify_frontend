@@ -20,20 +20,27 @@ jobs:
           distribution: 'temurin'
           java-version: '17'
 
-      - name: Set up Android SDK
-        uses: android-actions/setup-android@v3
-
       - name: Set up Flutter
         uses: subosito/flutter-action@v2
         with:
-          flutter-version: '3.41.6'
+          flutter-version: '3.32.0'
           channel: 'stable'
           cache: true
 
-      - name: Install Android 35 SDK packages
+      - name: Install Android SDK packages
         run: |
-          yes | sdkmanager --licenses
-          sdkmanager --install "platforms;android-35" "build-tools;35.0.0"
+          yes | sdkmanager --licenses || true
+          sdkmanager \
+            "platforms;android-35" \
+            "build-tools;35.0.0" \
+            "build-tools;34.0.0" \
+            "ndk;27.0.12077973"
+
+      - name: Write android/local.properties
+        run: |
+          echo "flutter.sdk=$FLUTTER_ROOT"      >  android/local.properties
+          echo "sdk.dir=$ANDROID_SDK_ROOT"      >> android/local.properties
+          cat android/local.properties
 
       - name: Clean Flutter build artifacts
         run: flutter clean
