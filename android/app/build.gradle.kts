@@ -6,16 +6,16 @@ plugins {
 
 android {
     namespace = "com.nilebitlabs.domify"
-    compileSdk = 35
+    compileSdk = 34
 
     compileOptions {
         isCoreLibraryDesugaringEnabled = true
-        sourceCompatibility = JavaVersion.VERSION_17
-        targetCompatibility = JavaVersion.VERSION_17
+        sourceCompatibility = JavaVersion.VERSION_11
+        targetCompatibility = JavaVersion.VERSION_11
     }
 
     kotlinOptions {
-        jvmTarget = "17"
+        jvmTarget = "11"
     }
 
     sourceSets {
@@ -27,18 +27,13 @@ android {
     defaultConfig {
         applicationId = "com.nilebitlabs.domify"
         minSdk = 21
-        targetSdk = 35
+        targetSdk = 34
         versionCode = 1
         versionName = "1.0"
         multiDexEnabled = true
     }
 
     buildTypes {
-        debug {
-            isMinifyEnabled = false
-            isShrinkResources = false
-            isDebuggable = true
-        }
         release {
             isMinifyEnabled = false
             isShrinkResources = false
@@ -55,5 +50,5 @@ flutter {
 }
 
 dependencies {
-    coreLibraryDesugaring("com.android.tools:desugar_jdk_libs:2.1.2")
+    coreLibraryDesugaring("com.android.tools:desugar_jdk_libs:2.0.4")
 }
