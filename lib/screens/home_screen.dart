@@ -780,29 +780,42 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
     );
   }
 
+  /// Per-tab accent colors — ordered by nav index
+  static const _tabColors = [
+    Color(0xFF178F5B), // 0 Home     — emerald green (brand)
+    Color(0xFFE84C6B), // 1 Favorites — rose
+    Color(0xFFF59E0B), // 2 Explore   — amber
+    Color(0xFF3B82F6), // 3 Compare   — blue
+    Color(0xFF8B5CF6), // 4 Settings  — violet
+  ];
+
   Widget _buildBottomNavigationBar() {
     final isDark = Theme.of(context).brightness == Brightness.dark;
-    
+
     return Container(
       decoration: BoxDecoration(
-        color: Theme.of(context).colorScheme.surface,
+        color: isDark
+            ? const Color(0xFF111827)
+            : Theme.of(context).colorScheme.surface,
         border: Border(
           top: BorderSide(
-            color: Theme.of(context).colorScheme.outline.withOpacity(0.1),
+            color: isDark
+                ? Colors.white.withOpacity(0.06)
+                : Colors.black.withOpacity(0.06),
             width: 1,
           ),
         ),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(isDark ? 0.3 : 0.05),
-            blurRadius: 20,
-            offset: const Offset(0, -5),
+            color: Colors.black.withOpacity(isDark ? 0.35 : 0.08),
+            blurRadius: 24,
+            offset: const Offset(0, -6),
           ),
         ],
       ),
       child: SafeArea(
         child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 8),
+          padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 6),
           child: Row(
             mainAxisAlignment: MainAxisAlignment.spaceAround,
             children: [
@@ -826,55 +839,79 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
   }) {
     final isSelected = _currentIndex == index;
     final isDark = Theme.of(context).brightness == Brightness.dark;
-    
-    final color = isSelected
-        ? Theme.of(context).colorScheme.primary
-        : Theme.of(context).colorScheme.onSurface.withOpacity(0.5);
+    final tabColor = _tabColors[index];
+    final inactiveColor = isDark
+        ? Colors.white.withOpacity(0.38)
+        : Colors.grey.shade500;
 
     return Expanded(
-      child: Material(
-        color: Colors.transparent,
-        child: InkWell(
-          onTap: () => setState(() => _currentIndex = index),
-          borderRadius: BorderRadius.circular(12),
-          child: AnimatedContainer(
-            duration: const Duration(milliseconds: 200),
-            padding: const EdgeInsets.symmetric(vertical: 8),
-            decoration: BoxDecoration(
-              color: isSelected
-                  ? Theme.of(context).colorScheme.primary.withOpacity(0.1)
-                  : Colors.transparent,
-              borderRadius: BorderRadius.circular(12),
-            ),
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                if (isLogo)
-                  SvgPicture.asset(
+      child: GestureDetector(
+        onTap: () {
+          setState(() => _currentIndex = index);
+        },
+        behavior: HitTestBehavior.opaque,
+        child: AnimatedContainer(
+          duration: const Duration(milliseconds: 220),
+          curve: Curves.easeOut,
+          margin: const EdgeInsets.symmetric(horizontal: 3),
+          padding: const EdgeInsets.symmetric(vertical: 7, horizontal: 2),
+          decoration: BoxDecoration(
+            color: isSelected
+                ? tabColor.withOpacity(isDark ? 0.18 : 0.11)
+                : Colors.transparent,
+            borderRadius: BorderRadius.circular(14),
+            border: isSelected
+                ? Border.all(color: tabColor.withOpacity(0.22), width: 1)
+                : null,
+          ),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              // ── Icon / Logo ──────────────────────────────────
+              if (isLogo)
+                AnimatedContainer(
+                  duration: const Duration(milliseconds: 220),
+                  width: isSelected ? 42 : 36,
+                  height: isSelected ? 42 : 36,
+                  child: SvgPicture.asset(
                     isDark
                         ? 'assets/images/dnblogdark-removebg-preview.svg'
                         : 'assets/images/dnblogolight-removebg-preview.svg',
-                    width: 28,
-                    height: 28,
-                  )
-                else
-                  Icon(
-                    icon,
-                    color: color,
-                    size: 26,
+                    fit: BoxFit.contain,
                   ),
-                const SizedBox(height: 4),
-                Text(
-                  label,
-                  style: TextStyle(
-                    color: color,
-                    fontSize: 11,
-                    fontWeight: isSelected ? FontWeight.w700 : FontWeight.w500,
-                    letterSpacing: 0.2,
+                )
+              else
+                AnimatedContainer(
+                  duration: const Duration(milliseconds: 220),
+                  padding: const EdgeInsets.all(5),
+                  decoration: BoxDecoration(
+                    color: isSelected
+                        ? tabColor.withOpacity(isDark ? 0.25 : 0.15)
+                        : Colors.transparent,
+                    borderRadius: BorderRadius.circular(10),
+                  ),
+                  child: Icon(
+                    icon,
+                    color: isSelected ? tabColor : inactiveColor,
+                    size: 24,
                   ),
                 ),
-              ],
-            ),
+
+              const SizedBox(height: 5),
+
+              // ── Label ────────────────────────────────────────
+              AnimatedDefaultTextStyle(
+                duration: const Duration(milliseconds: 200),
+                style: TextStyle(
+                  color: isSelected ? tabColor : inactiveColor,
+                  fontSize: 10,
+                  fontWeight:
+                      isSelected ? FontWeight.w700 : FontWeight.w500,
+                  letterSpacing: 0.2,
+                ),
+                child: Text(label),
+              ),
+            ],
           ),
         ),
       ),
