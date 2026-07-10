@@ -204,57 +204,71 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
       elevation: 0,
       backgroundColor: Theme.of(context).colorScheme.surface.withOpacity(0.95),
       flexibleSpace: FlexibleSpaceBar(
-        titlePadding: const EdgeInsets.only(left: 16, bottom: 12),
         title: Row(
-          crossAxisAlignment: CrossAxisAlignment.center,
           children: [
             Container(
-              margin: const EdgeInsets.only(top: 2),
+              margin: const EdgeInsets.only(top: 6),
               child: SvgPicture.asset(
                 isDark
                     ? 'assets/images/dnblogdark-removebg-preview.svg'
                     : 'assets/images/dnblogolight-removebg-preview.svg',
-                width: 38,
-                height: 38,
-                fit: BoxFit.contain,
+                width: 48,
+                height: 48,
               ),
             ),
-            const SizedBox(width: 8),
-            Container(
-              margin: const EdgeInsets.only(top: 4),
-              child: const Text(
-                'Homes',
-                style: TextStyle(
-                  fontSize: 22,
-                  fontWeight: FontWeight.w900,
-                  color: Color(0xFFA17324),
-                  letterSpacing: 0.5,
+            Flexible(
+              child: FittedBox(
+                fit: BoxFit.scaleDown,
+                alignment: Alignment.centerLeft,
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    ShaderMask(
+                      shaderCallback: (bounds) => const LinearGradient(
+                        colors: [Color(0xFF178F5B), Color(0xFF1A3C6E)],
+                      ).createShader(bounds),
+                      child: const Text(
+                        'dnb ',
+                        style: TextStyle(
+                          fontSize: 20,
+                          fontWeight: FontWeight.w800,
+                          color: Colors.white,
+                        ),
+                      ),
+                    ),
+                    const Text(
+                      'Homes',
+                      style: TextStyle(
+                        fontSize: 20,
+                        fontWeight: FontWeight.w900,
+                        color: Color(0xFFA17324),
+                      ),
+                    ),
+                  ],
                 ),
               ),
             ),
           ],
         ),
+        titlePadding: const EdgeInsets.only(left: 16, bottom: 16),
       ),
       actions: [
-        Container(
-          margin: const EdgeInsets.only(top: 14),
-          child: IconButton(
-            icon: Container(
-              padding: const EdgeInsets.all(8),
-              decoration: BoxDecoration(
-                color: Theme.of(context).colorScheme.primary.withOpacity(0.1),
-                borderRadius: BorderRadius.circular(12),
-              ),
-              child: Icon(
-                Icons.settings_outlined,
-                color: Theme.of(context).colorScheme.primary,
-                size: 20,
-              ),
+        IconButton(
+          icon: Container(
+            padding: const EdgeInsets.all(8),
+            decoration: BoxDecoration(
+              color: Theme.of(context).colorScheme.primary.withOpacity(0.1),
+              borderRadius: BorderRadius.circular(12),
             ),
-            onPressed: () => Navigator.push(
-              context,
-              MaterialPageRoute(builder: (context) => const SettingsScreen()),
+            child: Icon(
+              Icons.settings_outlined,
+              color: Theme.of(context).colorScheme.primary,
+              size: 20,
             ),
+          ),
+          onPressed: () => Navigator.push(
+            context,
+            MaterialPageRoute(builder: (context) => const SettingsScreen()),
           ),
         ),
         const SizedBox(width: 16),
