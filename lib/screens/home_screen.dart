@@ -227,18 +227,17 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
                       shaderCallback: (bounds) => const LinearGradient(
                         colors: [Color(0xFF178F5B), Color(0xFF1A3C6E)],
                       ).createShader(bounds),
-                      child: 
-                    //   const Text(
-                    //     'dnb',
-                    //     style: TextStyle(
-                    //       fontSize: 20,
-                    //       fontWeight: FontWeight.w800,
-                    //       color: Colors.white,
-                    //     ),
-                    //   ),
-                    // ),
+                      child: const Text(
+                        'DNB',
+                        style: TextStyle(
+                          fontSize: 20,
+                          fontWeight: FontWeight.w800,
+                          color: Colors.white,
+                        ),
+                      ),
+                    ),
                     const Text(
-                      'Properties',
+                      ' Properties',
                       style: TextStyle(
                         fontSize: 20,
                         fontWeight: FontWeight.w900,
