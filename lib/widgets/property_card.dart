@@ -264,8 +264,8 @@ class _PropertyCardState extends State<PropertyCard> {
             ),
             child: Icon(
               isInCompare
-                  ? Icons.compare_arrows
-                  : Icons.compare_arrows_outlined,
+                  ? Icons.balance
+                  : Icons.balance_outlined,
               color: isInCompare ? Colors.cyanAccent : Colors.white,
               size: 16,
             ),

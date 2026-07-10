@@ -505,7 +505,7 @@ class _ExploreScreenState extends State<ExploreScreen>
           child: Column(
             children: [
               Icon(
-                inCompare ? Icons.compare_arrows : Icons.compare_arrows_outlined,
+                inCompare ? Icons.balance : Icons.balance_outlined,
                 color: inCompare ? const Color(0xFF178F5B) : Colors.white,
                 size: 32,
               ),

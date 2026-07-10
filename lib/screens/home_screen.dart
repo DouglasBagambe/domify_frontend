@@ -10,6 +10,7 @@ import 'favorites_screen.dart';
 import 'settings_screen.dart';
 import 'all_properties_screen.dart';
 import 'loading_screen.dart';
+import 'ai_chat_screen.dart';
 
 /// Maps display category name → PropertyType enum name
 const Map<String, String> _categoryTypeMap = {
@@ -60,7 +61,7 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
       'color': Color(0xFF1A3C6E)
     },
     {
-      'icon': Icons.explore_rounded,
+      'icon': Icons.auto_awesome_rounded,
       'label': 'Explore',
       'color': Color(0xFFA17324)
     },
@@ -167,9 +168,8 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
         children: [
           _buildHomeContent(),
           const FavoritesScreen(),
-          const ExploreScreen(),
           const CompareScreen(),
-          const SettingsScreen(),
+          const ExploreScreen(),
         ],
       ),
     );
@@ -228,7 +228,7 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
                         colors: [Color(0xFF178F5B), Color(0xFF1A3C6E)],
                       ).createShader(bounds),
                       child: const Text(
-                        '',
+                        'dnb ',
                         style: TextStyle(
                           fontSize: 20,
                           fontWeight: FontWeight.w800,
@@ -261,14 +261,14 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
               borderRadius: BorderRadius.circular(12),
             ),
             child: Icon(
-              Icons.search_rounded,
+              Icons.settings_outlined,
               color: Theme.of(context).colorScheme.primary,
               size: 20,
             ),
           ),
           onPressed: () => Navigator.push(
             context,
-            MaterialPageRoute(builder: (context) => const FilterScreen()),
+            MaterialPageRoute(builder: (context) => const SettingsScreen()),
           ),
         ),
         const SizedBox(width: 16),
@@ -766,11 +766,11 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
       child: FloatingActionButton.extended(
         onPressed: () => Navigator.push(
           context,
-          MaterialPageRoute(builder: (context) => const FilterScreen()),
+          MaterialPageRoute(builder: (context) => const AIChatScreen()),
         ),
-        icon: const Icon(Icons.tune_rounded),
+        icon: const Icon(Icons.forum_rounded),
         label: const Text(
-          'Filter',
+          'AI Chat',
           style: TextStyle(fontWeight: FontWeight.w600),
         ),
         backgroundColor: Theme.of(context).colorScheme.primary,
@@ -783,10 +783,9 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
   /// Per-tab accent colors — ordered by nav index
   static const _tabColors = [
     Color(0xFF178F5B), // 0 Home     — emerald green (brand)
-    Color(0xFFE84C6B), // 1 Favorites — rose
-    Color(0xFFF59E0B), // 2 Explore   — amber
-    Color(0xFF3B82F6), // 3 Compare   — blue
-    Color(0xFF8B5CF6), // 4 Settings  — violet
+    Color(0xFFA17324), // 1 Favorites — gold
+    Color(0xFF3B82F6), // 2 Compare   — blue
+    Color(0xFF178F5B), // 3 Explore   — emerald green
   ];
 
   Widget _buildBottomNavigationBar() {
@@ -795,7 +794,7 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
     return Container(
       decoration: BoxDecoration(
         color: isDark
-            ? const Color(0xFF111827)
+            ? const Color(0xFF0A0F1D)
             : Theme.of(context).colorScheme.surface,
         border: Border(
           top: BorderSide(
@@ -821,9 +820,8 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
             children: [
               _buildNavItem(0, null, 'Home', isLogo: true),
               _buildNavItem(1, Icons.favorite_rounded, 'Favorites'),
-              _buildNavItem(2, Icons.explore_rounded, 'Explore'),
-              _buildNavItem(3, Icons.compare_arrows_rounded, 'Compare'),
-              _buildNavItem(4, Icons.settings_rounded, 'Settings'),
+              _buildNavItem(2, Icons.balance_rounded, 'Compare'),
+              _buildNavItem(3, Icons.auto_awesome_rounded, 'Explore'),
             ],
           ),
         ),
@@ -841,8 +839,8 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
     final isDark = Theme.of(context).brightness == Brightness.dark;
     final tabColor = _tabColors[index];
     final inactiveColor = isDark
-        ? Colors.white.withOpacity(0.38)
-        : Colors.grey.shade500;
+        ? Colors.white
+        : Colors.black;
 
     return Expanded(
       child: GestureDetector(

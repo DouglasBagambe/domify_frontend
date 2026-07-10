@@ -4,7 +4,8 @@ class AppTheme {
   static const Color primaryColor = Color(0xFF1A237E); // Deep Indigo
   static const Color accentColor = Color(0xFF00C853); // Emerald Green
   static const Color backgroundColor = Colors.white;
-  static const Color darkBackgroundColor = Color(0xFF121212);
+  static const Color darkBackgroundColor = Color(0xFF0B111E);
+  static const Color darkCardColor = Color(0xFF131B2E);
 
   static ThemeData lightTheme = ThemeData(
     useMaterial3: true,
@@ -50,11 +51,15 @@ class AppTheme {
     useMaterial3: true,
     brightness: Brightness.dark,
     fontFamily: 'Poppins',
-    primaryColor: primaryColor,
-    colorScheme: ColorScheme.dark(
-      primary: primaryColor,
-      secondary: accentColor,
+    primaryColor: const Color(0xFF178F5B),
+    scaffoldBackgroundColor: darkBackgroundColor,
+    colorScheme: const ColorScheme.dark(
+      primary: Color(0xFF178F5B),
+      secondary: Color(0xFFA17324),
       background: darkBackgroundColor,
+      surface: darkCardColor,
+      onBackground: Colors.white,
+      onSurface: Color(0xFFE2E8F0),
     ),
     appBarTheme: const AppBarTheme(
       backgroundColor: darkBackgroundColor,
@@ -69,14 +74,17 @@ class AppTheme {
       ),
     ),
     cardTheme: CardThemeData(
-      elevation: 2,
+      color: darkCardColor,
+      elevation: 3,
+      shadowColor: Colors.black.withOpacity(0.5),
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(16),
+        side: const BorderSide(color: Color(0xFF1E293B), width: 1),
       ),
     ),
     elevatedButtonTheme: ElevatedButtonThemeData(
       style: ElevatedButton.styleFrom(
-        backgroundColor: primaryColor,
+        backgroundColor: const Color(0xFF178F5B),
         foregroundColor: Colors.white,
         padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
         shape: RoundedRectangleBorder(

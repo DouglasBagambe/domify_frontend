@@ -777,7 +777,7 @@ class _FavoritesScreenState extends State<FavoritesScreen>
             const SizedBox(height: 40),
             ElevatedButton.icon(
               onPressed: () => Navigator.pop(context),
-              icon: const Icon(Icons.explore_rounded),
+              icon: const Icon(Icons.auto_awesome_rounded),
               label: const Text('Explore Properties'),
               style: ElevatedButton.styleFrom(
                 backgroundColor: theme.primaryColor,

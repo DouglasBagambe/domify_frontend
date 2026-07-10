@@ -21,7 +21,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> with TickerProvider
     OnboardingPage(
       title: 'Welcome to ',
       highlightedWord: 'dnb Homes',
-      description: 'Your trusted platform for verified property listings across Uganda.\nSmart properties, zero scams.',
+      description: 'Your trusted platform for verified property listings across Uganda.\nDreams and Beyond.',
       icon: Icons.home_rounded,
       gradient: [Color(0xFFFAFAFA), Color(0xFFF0F0F0)],
     ),

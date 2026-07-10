@@ -171,7 +171,7 @@ class _PropertyDetailScreenState extends State<PropertyDetailScreen> {
                   final isInCompare = compareProvider.isInCompare(_property.id);
                   return IconButton(
                     icon: Icon(
-                      isInCompare ? Icons.compare_arrows : Icons.compare_arrows_outlined,
+                      isInCompare ? Icons.balance : Icons.balance_outlined,
                       color: isInCompare ? Theme.of(context).colorScheme.primary : null,
                     ),
                     onPressed: () {
