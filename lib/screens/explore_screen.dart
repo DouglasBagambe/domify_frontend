@@ -439,14 +439,16 @@ class _ExploreScreenState extends State<ExploreScreen>
             ),
           ),
         ),
-        Container(
-          margin: const EdgeInsets.only(top: -6),
-          padding: const EdgeInsets.all(3),
-          decoration: const BoxDecoration(
-            color: Color(0xFF178F5B),
-            shape: BoxShape.circle,
+        Transform.translate(
+          offset: const Offset(0, -6),
+          child: Container(
+            padding: const EdgeInsets.all(3),
+            decoration: const BoxDecoration(
+              color: Color(0xFF178F5B),
+              shape: BoxShape.circle,
+            ),
+            child: const Icon(Icons.add, color: Colors.white, size: 10),
           ),
-          child: const Icon(Icons.add, color: Colors.white, size: 10),
         ),
       ],
     );
