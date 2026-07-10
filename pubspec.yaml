@@ -124,7 +124,7 @@ flutter:
 flutter_icons:
   android: "launcher_icon"
   ios: true
-  image_path: "assets/icons/dnb_icon_light.png"
+  image_path: "assets/icons/dnb_icon_green.png"
   adaptive_icon_background: "#178F5B"
   adaptive_icon_foreground: "assets/icons/dnb_icon_foreground.png"
   web:
