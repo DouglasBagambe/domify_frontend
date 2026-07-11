@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
 import 'package:url_launcher/url_launcher.dart';
 import '../models/property_model.dart';
@@ -58,7 +59,7 @@ class _PropertyDetailScreenState extends State<PropertyDetailScreen> {
       );
     }
 
-    if (_property == null) {
+    if (_error != null) {
       return Scaffold(
         appBar: AppBar(
           title: const Text('Property Details'),
@@ -67,9 +68,7 @@ class _PropertyDetailScreenState extends State<PropertyDetailScreen> {
             onPressed: () => Navigator.pop(context),
           ),
         ),
-        body: const Center(
-          child: Text('Property not found'),
-        ),
+        body: Center(child: Text(_error!)),
       );
     }
 
@@ -84,7 +83,7 @@ class _PropertyDetailScreenState extends State<PropertyDetailScreen> {
               background: Stack(
                 fit: StackFit.expand,
                 children: [
-                  // Image Carousel
+                  // Swipeable Image Carousel
                   PageView.builder(
                     itemCount: _property.images.length,
                     onPageChanged: (index) {
@@ -172,7 +171,9 @@ class _PropertyDetailScreenState extends State<PropertyDetailScreen> {
                   return IconButton(
                     icon: Icon(
                       isInCompare ? Icons.balance : Icons.balance_outlined,
-                      color: isInCompare ? Theme.of(context).colorScheme.primary : null,
+                      color: isInCompare
+                          ? Theme.of(context).colorScheme.primary
+                          : null,
                     ),
                     onPressed: () {
                       if (isInCompare) {
@@ -181,6 +182,19 @@ class _PropertyDetailScreenState extends State<PropertyDetailScreen> {
                         compareProvider.addToCompare(_property.id);
                       }
                     },
+                  );
+                },
+              ),
+              // Share Button
+              IconButton(
+                icon: const Icon(Icons.share),
+                onPressed: () {
+                  final link =
+                      'https://dnbhomes.app/property/${_property.id}';
+                  Clipboard.setData(ClipboardData(text: link));
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(
+                        content: Text('Property link copied to clipboard')),
                   );
                 },
               ),
@@ -200,17 +214,18 @@ class _PropertyDetailScreenState extends State<PropertyDetailScreen> {
                       Expanded(
                         child: Text(
                           _property.title,
-                          style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-                            fontWeight: FontWeight.bold,
-                          ),
+                          style:
+                              Theme.of(context).textTheme.headlineSmall?.copyWith(
+                                    fontWeight: FontWeight.bold,
+                                  ),
                         ),
                       ),
                       Text(
                         'UGX ${_property.price.toStringAsFixed(0)}',
                         style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                          color: Theme.of(context).colorScheme.primary,
-                          fontWeight: FontWeight.bold,
-                        ),
+                              color: Theme.of(context).colorScheme.primary,
+                              fontWeight: FontWeight.bold,
+                            ),
                       ),
                     ],
                   ),
@@ -218,18 +233,12 @@ class _PropertyDetailScreenState extends State<PropertyDetailScreen> {
                   // Location
                   Row(
                     children: [
-                      Icon(
-                        Icons.location_on,
-                        size: 16,
-                        color: Colors.grey[600],
-                      ),
+                      Icon(Icons.location_on, size: 16, color: Colors.grey[600]),
                       const SizedBox(width: 4),
                       Expanded(
                         child: Text(
                           _property.location,
-                          style: TextStyle(
-                            color: Colors.grey[600],
-                          ),
+                          style: TextStyle(color: Colors.grey[600]),
                         ),
                       ),
                     ],
@@ -254,8 +263,8 @@ class _PropertyDetailScreenState extends State<PropertyDetailScreen> {
                   Text(
                     'Description',
                     style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                      fontWeight: FontWeight.bold,
-                    ),
+                          fontWeight: FontWeight.bold,
+                        ),
                   ),
                   const SizedBox(height: 8),
                   Text(
@@ -267,8 +276,8 @@ class _PropertyDetailScreenState extends State<PropertyDetailScreen> {
                   Text(
                     'Amenities',
                     style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                      fontWeight: FontWeight.bold,
-                    ),
+                          fontWeight: FontWeight.bold,
+                        ),
                   ),
                   const SizedBox(height: 8),
                   Wrap(
@@ -277,7 +286,8 @@ class _PropertyDetailScreenState extends State<PropertyDetailScreen> {
                     children: _property.amenities.map((amenity) {
                       return Chip(
                         label: Text(amenity),
-                        backgroundColor: Theme.of(context).colorScheme.primaryContainer,
+                        backgroundColor:
+                            Theme.of(context).colorScheme.primaryContainer,
                       );
                     }).toList(),
                   ),
@@ -294,16 +304,18 @@ class _PropertyDetailScreenState extends State<PropertyDetailScreen> {
                       children: [
                         Text(
                           'Contact Agent',
-                          style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                            fontWeight: FontWeight.bold,
-                          ),
+                          style: Theme.of(context)
+                              .textTheme
+                              .titleLarge
+                              ?.copyWith(fontWeight: FontWeight.bold),
                         ),
                         const SizedBox(height: 16),
                         Row(
                           children: [
                             CircleAvatar(
                               radius: 24,
-                              backgroundImage: NetworkImage(_property.agent.photo),
+                              backgroundImage:
+                                  NetworkImage(_property.agent.photo),
                             ),
                             const SizedBox(width: 12),
                             Expanded(
@@ -312,13 +324,15 @@ class _PropertyDetailScreenState extends State<PropertyDetailScreen> {
                                 children: [
                                   Text(
                                     _property.agent.name,
-                                    style: Theme.of(context).textTheme.titleMedium,
+                                    style:
+                                        Theme.of(context).textTheme.titleMedium,
                                   ),
                                   Text(
                                     'Senior Agent',
-                                    style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                                      color: Colors.grey[600],
-                                    ),
+                                    style: Theme.of(context)
+                                        .textTheme
+                                        .bodyMedium
+                                        ?.copyWith(color: Colors.grey[600]),
                                   ),
                                 ],
                               ),
@@ -330,8 +344,14 @@ class _PropertyDetailScreenState extends State<PropertyDetailScreen> {
                           children: [
                             Expanded(
                               child: OutlinedButton.icon(
-                                onPressed: () {
-                                  // TODO: Implement call functionality
+                                onPressed: () async {
+                                  final uri = Uri(
+                                    scheme: 'tel',
+                                    path: _property.agent.phone,
+                                  );
+                                  if (await canLaunchUrl(uri)) {
+                                    await launchUrl(uri);
+                                  }
                                 },
                                 icon: const Icon(Icons.phone),
                                 label: const Text('Call'),
@@ -340,8 +360,18 @@ class _PropertyDetailScreenState extends State<PropertyDetailScreen> {
                             const SizedBox(width: 8),
                             Expanded(
                               child: OutlinedButton.icon(
-                                onPressed: () {
-                                  // TODO: Implement message functionality
+                                onPressed: () async {
+                                  final uri = Uri(
+                                    scheme: 'mailto',
+                                    path: _property.agent.email,
+                                    queryParameters: {
+                                      'subject':
+                                          'Inquiry about ${_property.title}',
+                                    },
+                                  );
+                                  if (await canLaunchUrl(uri)) {
+                                    await launchUrl(uri);
+                                  }
                                 },
                                 icon: const Icon(Icons.message),
                                 label: const Text('Message'),
@@ -361,29 +391,163 @@ class _PropertyDetailScreenState extends State<PropertyDetailScreen> {
       bottomNavigationBar: SafeArea(
         child: Padding(
           padding: const EdgeInsets.all(16),
-          child: ElevatedButton(
+          child: ElevatedButton.icon(
             onPressed: () {
-              // TODO: Implement schedule viewing functionality
+              showModalBottomSheet(
+                context: context,
+                shape: const RoundedRectangleBorder(
+                  borderRadius:
+                      BorderRadius.vertical(top: Radius.circular(24)),
+                ),
+                builder: (_) => _buildMoreActionsSheet(),
+              );
             },
             style: ElevatedButton.styleFrom(
               padding: const EdgeInsets.symmetric(vertical: 16),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(12),
+              ),
             ),
-            child: const Text('Schedule Viewing'),
+            icon: const Icon(Icons.more_horiz),
+            label: const Text('More Actions',
+                style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
           ),
         ),
       ),
     );
   }
 
+  // ─── More Actions Bottom Sheet ────────────────────────────────────────────
+  Widget _buildMoreActionsSheet() {
+    return SafeArea(
+      child: Padding(
+        padding: const EdgeInsets.symmetric(vertical: 8),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            // Handle
+            Container(
+              width: 40,
+              height: 4,
+              margin: const EdgeInsets.only(bottom: 16),
+              decoration: BoxDecoration(
+                color: Colors.grey[300],
+                borderRadius: BorderRadius.circular(2),
+              ),
+            ),
+            Text(
+              'More Actions',
+              style: Theme.of(context)
+                  .textTheme
+                  .titleMedium
+                  ?.copyWith(fontWeight: FontWeight.bold),
+            ),
+            const Divider(height: 24),
+            // Schedule Viewing
+            ListTile(
+              leading: Container(
+                padding: const EdgeInsets.all(8),
+                decoration: BoxDecoration(
+                  color: Theme.of(context)
+                      .colorScheme
+                      .primaryContainer,
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                child: Icon(Icons.schedule,
+                    color: Theme.of(context).colorScheme.primary),
+              ),
+              title: const Text('Schedule Viewing'),
+              subtitle: const Text('Book an in-person viewing'),
+              trailing: const Icon(Icons.chevron_right),
+              onTap: () {
+                Navigator.pop(context);
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (_) => BookingScreen(
+                      property: _property,
+                      bookingType: BookingType.viewing,
+                    ),
+                  ),
+                );
+              },
+            ),
+            // Request More Info
+            ListTile(
+              leading: Container(
+                padding: const EdgeInsets.all(8),
+                decoration: BoxDecoration(
+                  color: Theme.of(context)
+                      .colorScheme
+                      .secondaryContainer,
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                child: Icon(Icons.info_outline,
+                    color: Theme.of(context).colorScheme.secondary),
+              ),
+              title: const Text('Request More Info'),
+              subtitle: const Text('Ask the agent a question'),
+              trailing: const Icon(Icons.chevron_right),
+              onTap: () async {
+                final uri = Uri(
+                  scheme: 'mailto',
+                  path: _property.agent.email,
+                  queryParameters: {
+                    'subject': 'Inquiry about ${_property.title}',
+                    'body':
+                        'Hello, I am interested in the property: ${_property.title} (ID: ${_property.id}). Could you provide more information?',
+                  },
+                );
+                Navigator.pop(context);
+                if (await canLaunchUrl(uri)) {
+                  await launchUrl(uri);
+                } else {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(content: Text('Contact: ${_property.agent.email}')),
+                  );
+                }
+              },
+            ),
+            // Book Your Stay
+            ListTile(
+              leading: Container(
+                padding: const EdgeInsets.all(8),
+                decoration: BoxDecoration(
+                  color: Colors.orange.withOpacity(0.15),
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                child: const Icon(Icons.hotel, color: Colors.orange),
+              ),
+              title: const Text('Book Your Stay'),
+              subtitle: const Text('Reserve this property now'),
+              trailing: const Icon(Icons.chevron_right),
+              onTap: () {
+                Navigator.pop(context);
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (_) => BookingScreen(
+                      property: _property,
+                      bookingType: BookingType.stay,
+                    ),
+                  ),
+                );
+              },
+            ),
+            const SizedBox(height: 8),
+          ],
+        ),
+      ),
+    );
+  }
+
+  // ─── Info Chip ────────────────────────────────────────────────────────────
   Widget _buildInfoChip({
     required IconData icon,
     required String label,
   }) {
     return Container(
-      padding: const EdgeInsets.symmetric(
-        horizontal: 12,
-        vertical: 6,
-      ),
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
       decoration: BoxDecoration(
         color: Theme.of(context).colorScheme.primaryContainer,
         borderRadius: BorderRadius.circular(20),
@@ -391,11 +555,7 @@ class _PropertyDetailScreenState extends State<PropertyDetailScreen> {
       child: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
-          Icon(
-            icon,
-            size: 16,
-            color: Theme.of(context).colorScheme.primary,
-          ),
+          Icon(icon, size: 16, color: Theme.of(context).colorScheme.primary),
           const SizedBox(width: 4),
           Text(
             label,
@@ -408,4 +568,4 @@ class _PropertyDetailScreenState extends State<PropertyDetailScreen> {
       ),
     );
   }
-} 
+}

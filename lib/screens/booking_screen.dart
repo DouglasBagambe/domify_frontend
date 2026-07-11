@@ -3,12 +3,16 @@ import 'package:intl/intl.dart';
 import '../models/property_model.dart';
 import '../services/api_service.dart';
 
+enum BookingType { viewing, stay }
+
 class BookingScreen extends StatefulWidget {
   final Property property;
+  final BookingType bookingType;
 
   const BookingScreen({
     super.key,
     required this.property,
+    this.bookingType = BookingType.viewing,
   });
 
   @override
@@ -28,6 +32,7 @@ class _BookingScreenState extends State<BookingScreen> {
   @override
   void initState() {
     super.initState();
+    _purpose = widget.bookingType == BookingType.stay ? 'Book Your Stay' : 'Viewing';
     _loadProperty();
   }
 
@@ -57,6 +62,7 @@ class _BookingScreenState extends State<BookingScreen> {
     'Viewing',
     'Detailed Inspection',
     'Price Negotiation',
+    'Book Your Stay',
     'Other'
   ];
 
