@@ -168,8 +168,9 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
         children: [
           _buildHomeContent(),
           const FavoritesScreen(),
-          const CompareScreen(),
+          CompareScreen(onGoHome: () => setState(() => _currentIndex = 0)),
           const ExploreScreen(),
+
         ],
       ),
     );
