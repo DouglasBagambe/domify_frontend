@@ -3,6 +3,7 @@ import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
 import 'package:shimmer/shimmer.dart';
 import 'package:video_player/video_player.dart';
+import 'package:share_plus/share_plus.dart';
 import '../models/property_model.dart';
 import '../services/api_service.dart';
 import '../providers/favorites_provider.dart';
@@ -23,6 +24,31 @@ class _ExploreScreenState extends State<ExploreScreen>
   final PageController _pageController = PageController();
   final Map<String, PageController> _imageControllers = {};
   final Map<String, VideoPlayerController> _videoControllers = {};
+
+  bool _showHeartOverlay = false;
+  double _heartX = 0.0;
+  double _heartY = 0.0;
+
+  void _triggerDoubleTapLike(Offset localPosition, Property property) {
+    if (!mounted) return;
+    final fav = Provider.of<FavoritesProvider>(context, listen: false);
+    if (!fav.isFavorite(property.id)) {
+      fav.toggleFavorite(property.id);
+      HapticFeedback.heavyImpact();
+    }
+    setState(() {
+      _showHeartOverlay = true;
+      _heartX = localPosition.dx;
+      _heartY = localPosition.dy;
+    });
+    Future.delayed(const Duration(milliseconds: 600), () {
+      if (mounted) {
+        setState(() {
+          _showHeartOverlay = false;
+        });
+      }
+    });
+  }
 
   List<Property> _properties = [];
   bool _isLoading = true;
@@ -148,7 +174,7 @@ class _ExploreScreenState extends State<ExploreScreen>
 
           // Top: Filter chips
           Positioned(
-            top: MediaQuery.of(context).padding.top + 28,
+            top: MediaQuery.of(context).padding.top + 20,
             left: 0,
             right: 0,
             child: _buildFilterRow(),
@@ -157,7 +183,7 @@ class _ExploreScreenState extends State<ExploreScreen>
           // Right: TikTok action buttons
           Positioned(
             right: 12,
-            bottom: MediaQuery.of(context).padding.bottom + 100,
+            bottom: MediaQuery.of(context).padding.bottom + 120,
             child: _buildActionColumn(),
           ),
 
@@ -165,7 +191,7 @@ class _ExploreScreenState extends State<ExploreScreen>
           Positioned(
             left: 0,
             right: 72,
-            bottom: MediaQuery.of(context).padding.bottom + 16,
+            bottom: MediaQuery.of(context).padding.bottom + 20,
             child: _buildPropertyInfo(),
           ),
         ],
@@ -184,6 +210,10 @@ class _ExploreScreenState extends State<ExploreScreen>
     final totalMedia = (hasVideo ? 1 : 0) + images.length;
 
     return GestureDetector(
+      onDoubleTapDown: (details) {
+        _triggerDoubleTapLike(details.localPosition, property);
+      },
+      onDoubleTap: () {},
       onTap: () {
         Navigator.push(
           context,
@@ -201,40 +231,70 @@ class _ExploreScreenState extends State<ExploreScreen>
           _nextImage(controller, totalMedia);
         }
       },
-      child: PageView.builder(
-        controller: controller,
-        itemCount: totalMedia,
-        onPageChanged: (index) {
-          setState(() => _currentImageIndex = index);
-        },
-        itemBuilder: (context, imgIndex) {
-          // First item is video if available
-          if (hasVideo && imgIndex == 0) {
-            return _buildVideoSlide(videos[0], property.id);
-          }
-          final imageIndex = hasVideo ? imgIndex - 1 : imgIndex;
-          return Image.network(
-            images[imageIndex],
-            fit: BoxFit.cover,
-            width: double.infinity,
-            height: double.infinity,
-            loadingBuilder: (context, child, progress) {
-              if (progress == null) return child;
-              return Shimmer.fromColors(
-                baseColor: Colors.grey[900]!,
-                highlightColor: Colors.grey[700]!,
-                child: Container(color: Colors.grey[900]),
+      child: Stack(
+        fit: StackFit.expand,
+        children: [
+          PageView.builder(
+            controller: controller,
+            itemCount: totalMedia,
+            onPageChanged: (index) {
+              setState(() => _currentImageIndex = index);
+            },
+            itemBuilder: (context, imgIndex) {
+              // First item is video if available
+              if (hasVideo && imgIndex == 0) {
+                return _buildVideoSlide(videos[0], property.id);
+              }
+              final imageIndex = hasVideo ? imgIndex - 1 : imgIndex;
+              return Image.network(
+                images[imageIndex],
+                fit: BoxFit.cover,
+                width: double.infinity,
+                height: double.infinity,
+                loadingBuilder: (context, child, progress) {
+                  if (progress == null) return child;
+                  return Shimmer.fromColors(
+                    baseColor: Colors.grey[900]!,
+                    highlightColor: Colors.grey[700]!,
+                    child: Container(color: Colors.grey[900]),
+                  );
+                },
+                errorBuilder: (_, __, ___) => Container(
+                  color: Colors.grey[900],
+                  child: const Center(
+                    child:
+                        Icon(Icons.broken_image, color: Colors.grey, size: 48),
+                  ),
+                ),
               );
             },
-            errorBuilder: (_, __, ___) => Container(
-              color: Colors.grey[900],
-              child: const Center(
-                child:
-                    Icon(Icons.broken_image, color: Colors.grey, size: 48),
+          ),
+          // Dark bottom & top overlay to protect white text contrast
+          Positioned.fill(
+            child: DecoratedBox(
+              decoration: BoxDecoration(
+                gradient: LinearGradient(
+                  begin: Alignment.topCenter,
+                  end: Alignment.bottomCenter,
+                  colors: [
+                    Colors.black.withOpacity(0.55),
+                    Colors.transparent,
+                    Colors.transparent,
+                    Colors.black.withOpacity(0.80),
+                  ],
+                  stops: const [0.0, 0.20, 0.50, 1.0],
+                ),
               ),
             ),
-          );
-        },
+          ),
+          // Live heart indicator
+          if (_showHeartOverlay)
+            Positioned(
+              left: _heartX - 50,
+              top: _heartY - 50,
+              child: const AnimatedHeartOverlay(),
+            ),
+        ],
       ),
     );
   }
@@ -398,8 +458,22 @@ class _ExploreScreenState extends State<ExploreScreen>
     return Column(
       mainAxisSize: MainAxisSize.min,
       children: [
-        // Agent avatar
+        // Agent logo (DNB logo asset)
         _buildAgentAvatar(property),
+        const SizedBox(height: 20),
+        // Eye (View details)
+        _buildIconAction(
+          Icons.visibility_rounded,
+          'Details',
+          () {
+            Navigator.push(
+              context,
+              MaterialPageRoute(
+                builder: (_) => PropertyDetailScreen(propertyId: property.id),
+              ),
+            );
+          },
+        ),
         const SizedBox(height: 20),
         // Favorite
         _buildActionBtn(property),
@@ -425,33 +499,24 @@ class _ExploreScreenState extends State<ExploreScreen>
   }
 
   Widget _buildAgentAvatar(Property property) {
-    return Column(
-      children: [
-        Container(
-          width: 44,
-          height: 44,
-          decoration: BoxDecoration(
-            shape: BoxShape.circle,
-            border: Border.all(color: Colors.white, width: 2),
-            image: DecorationImage(
-              image: NetworkImage(property.agent.photo),
-              fit: BoxFit.cover,
-              onError: (_, __) {},
-            ),
+    return Container(
+      width: 48,
+      height: 48,
+      decoration: BoxDecoration(
+        shape: BoxShape.circle,
+        border: Border.all(color: Colors.white, width: 2),
+        boxShadow: const [
+          BoxShadow(
+            color: Colors.black26,
+            blurRadius: 8,
+            offset: Offset(0, 2),
           ),
+        ],
+        image: const DecorationImage(
+          image: AssetImage('assets/images/dnblogolight.jpg'),
+          fit: BoxFit.cover,
         ),
-        Transform.translate(
-          offset: const Offset(0, -6),
-          child: Container(
-            padding: const EdgeInsets.all(3),
-            decoration: const BoxDecoration(
-              color: Color(0xFF178F5B),
-              shape: BoxShape.circle,
-            ),
-            child: const Icon(Icons.add, color: Colors.white, size: 10),
-          ),
-        ),
-      ],
+      ),
     );
   }
 
@@ -459,29 +524,44 @@ class _ExploreScreenState extends State<ExploreScreen>
     return Consumer<FavoritesProvider>(
       builder: (context, fav, _) {
         final isFav = fav.isFavorite(property.id);
-        return GestureDetector(
-          onTap: () {
-            HapticFeedback.mediumImpact();
-            fav.toggleFavorite(property.id);
-          },
-          child: Column(
-            children: [
-              Icon(
-                isFav ? Icons.favorite : Icons.favorite_border_rounded,
-                color: isFav ? Colors.red : Colors.white,
-                size: 32,
-              ),
-              const SizedBox(height: 4),
-              Text(
-                '${property.favorites}',
-                style: const TextStyle(
-                  color: Colors.white,
-                  fontSize: 11,
-                  fontWeight: FontWeight.w600,
+        return Column(
+          children: [
+            GestureDetector(
+              onTap: () {
+                HapticFeedback.mediumImpact();
+                fav.toggleFavorite(property.id);
+              },
+              child: Container(
+                width: 48,
+                height: 48,
+                decoration: BoxDecoration(
+                  shape: BoxShape.circle,
+                  color: Colors.black.withOpacity(0.45),
+                  border: Border.all(
+                    color: Colors.white.withOpacity(0.15),
+                    width: 1,
+                  ),
+                ),
+                child: Icon(
+                  isFav ? Icons.favorite_rounded : Icons.favorite_border_rounded,
+                  color: isFav ? Colors.red : Colors.white,
+                  size: 26,
                 ),
               ),
-            ],
-          ),
+            ),
+            const SizedBox(height: 6),
+            Text(
+              isFav ? 'Saved' : 'Save',
+              style: const TextStyle(
+                color: Colors.white,
+                fontSize: 11,
+                fontWeight: FontWeight.w600,
+                shadows: [
+                  Shadow(color: Colors.black87, blurRadius: 4),
+                ],
+              ),
+            ),
+          ],
         );
       },
     );
@@ -492,57 +572,87 @@ class _ExploreScreenState extends State<ExploreScreen>
       builder: (context, cmp, _) {
         final inCompare = cmp.isInCompare(property.id);
         final canAdd = cmp.compareList.length < 2 || inCompare;
-        return GestureDetector(
-          onTap: canAdd
-              ? () {
-                  HapticFeedback.mediumImpact();
-                  if (inCompare) {
-                    cmp.removeFromCompare(property.id);
-                  } else {
-                    cmp.addToCompare(property.id);
-                  }
-                }
-              : null,
-          child: Column(
-            children: [
-              Icon(
-                inCompare ? Icons.balance : Icons.balance_outlined,
-                color: inCompare ? const Color(0xFF178F5B) : Colors.white,
-                size: 32,
-              ),
-              const SizedBox(height: 4),
-              const Text(
-                'Compare',
-                style: TextStyle(
-                  color: Colors.white,
-                  fontSize: 11,
-                  fontWeight: FontWeight.w600,
+        return Column(
+          children: [
+            GestureDetector(
+              onTap: canAdd
+                  ? () {
+                      HapticFeedback.mediumImpact();
+                      if (inCompare) {
+                        cmp.removeFromCompare(property.id);
+                      } else {
+                        cmp.addToCompare(property.id);
+                      }
+                    }
+                  : null,
+              child: Container(
+                width: 48,
+                height: 48,
+                decoration: BoxDecoration(
+                  shape: BoxShape.circle,
+                  color: Colors.black.withOpacity(0.45),
+                  border: Border.all(
+                    color: Colors.white.withOpacity(0.15),
+                    width: 1,
+                  ),
+                ),
+                child: Icon(
+                  inCompare ? Icons.balance_rounded : Icons.balance_outlined,
+                  color: inCompare ? const Color(0xFF10B981) : Colors.white,
+                  size: 26,
                 ),
               ),
-            ],
-          ),
+            ),
+            const SizedBox(height: 6),
+            const Text(
+              'Compare',
+              style: TextStyle(
+                color: Colors.white,
+                fontSize: 11,
+                fontWeight: FontWeight.w600,
+                shadows: [
+                  Shadow(color: Colors.black87, blurRadius: 4),
+                ],
+              ),
+            ),
+          ],
         );
       },
     );
   }
 
   Widget _buildIconAction(IconData icon, String label, VoidCallback onTap) {
-    return GestureDetector(
-      onTap: onTap,
-      child: Column(
-        children: [
-          Icon(icon, color: Colors.white, size: 28),
-          const SizedBox(height: 4),
-          Text(
-            label,
-            style: const TextStyle(
-              color: Colors.white,
-              fontSize: 11,
-              fontWeight: FontWeight.w600,
+    return Column(
+      children: [
+        GestureDetector(
+          onTap: onTap,
+          child: Container(
+            width: 48,
+            height: 48,
+            decoration: BoxDecoration(
+              shape: BoxShape.circle,
+              color: Colors.black.withOpacity(0.45),
+              border: Border.all(
+                color: Colors.white.withOpacity(0.15),
+                width: 1,
+              ),
             ),
+            child: Icon(icon, color: Colors.white, size: 24),
           ),
-        ],
-      ),
+        ),
+        const SizedBox(height: 6),
+        Text(
+          label,
+          style: const TextStyle(
+            color: Colors.white,
+            fontSize: 11,
+            fontWeight: FontWeight.w600,
+            shadows: [
+              Shadow(color: Colors.black87, blurRadius: 4),
+            ],
+          ),
+        ),
+      ],
     );
   }
 
@@ -553,68 +663,76 @@ class _ExploreScreenState extends State<ExploreScreen>
     }
     final property = _filtered[_currentIndex];
 
-    return Container(
-      padding: const EdgeInsets.fromLTRB(16, 0, 16, 0),
+    return Padding(
+      padding: const EdgeInsets.only(left: 16, right: 12),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         mainAxisSize: MainAxisSize.min,
         children: [
-          // Agent name
+          // Purpose Badge (sale/rent)
           Row(
             children: [
-              Text(
-                '@${property.agent.name.replaceAll(' ', '').toLowerCase()}',
-                style: const TextStyle(
-                  color: Colors.white,
-                  fontSize: 14,
-                  fontWeight: FontWeight.w700,
-                ),
-              ),
-              const SizedBox(width: 8),
               Container(
-                padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 3),
                 decoration: BoxDecoration(
-                  color: const Color(0xFF178F5B),
-                  borderRadius: BorderRadius.circular(4),
+                  gradient: const LinearGradient(
+                    colors: [Color(0xFF10B981), Color(0xFF0D9488)],
+                  ),
+                  borderRadius: BorderRadius.circular(10),
+                  boxShadow: [
+                    BoxShadow(
+                      color: const Color(0xFF10B981).withOpacity(0.3),
+                      blurRadius: 8,
+                      offset: const Offset(0, 2),
+                    ),
+                  ],
                 ),
                 child: Text(
                   property.purpose.toString().split('.').last.toUpperCase(),
                   style: const TextStyle(
                     color: Colors.white,
-                    fontSize: 9,
-                    fontWeight: FontWeight.w700,
+                    fontSize: 10,
+                    fontWeight: FontWeight.w800,
+                    letterSpacing: 0.5,
                   ),
                 ),
               ),
             ],
           ),
-          const SizedBox(height: 6),
+          const SizedBox(height: 8),
 
-          // Title
+          // Property Title
           Text(
             property.title,
             style: const TextStyle(
               color: Colors.white,
-              fontSize: 15,
-              fontWeight: FontWeight.w500,
+              fontSize: 16,
+              fontWeight: FontWeight.w700,
               height: 1.3,
+              shadows: [
+                Shadow(color: Colors.black87, blurRadius: 4, offset: Offset(0, 1.5)),
+              ],
             ),
             maxLines: 2,
             overflow: TextOverflow.ellipsis,
           ),
-          const SizedBox(height: 8),
+          const SizedBox(height: 6),
 
           // Location
           Row(
             children: [
-              const Icon(Icons.location_on, color: Colors.redAccent, size: 14),
+              const Icon(Icons.location_on_rounded, color: Color(0xFFF87171), size: 14),
               const SizedBox(width: 4),
               Expanded(
                 child: Text(
                   property.location,
                   style: TextStyle(
-                    color: Colors.white.withOpacity(0.85),
+                    color: Colors.white.withOpacity(0.95),
                     fontSize: 13,
+                    fontWeight: FontWeight.w400,
+                    shadows: const [
+                      Shadow(color: Colors.black87, blurRadius: 4, offset: Offset(0, 1.5)),
+                    ],
                   ),
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
@@ -622,61 +740,41 @@ class _ExploreScreenState extends State<ExploreScreen>
               ),
             ],
           ),
-          const SizedBox(height: 8),
+          const SizedBox(height: 10),
 
-          // Price + details row
+          // Price + Amenities Row
           Row(
             children: [
-              // Price pill
+              // Price Pill
               Container(
                 padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
                 decoration: BoxDecoration(
-                  color: Colors.white,
-                  borderRadius: BorderRadius.circular(20),
+                  gradient: const LinearGradient(
+                    colors: [Color(0xFF10B981), Color(0xFF047857)],
+                  ),
+                  borderRadius: BorderRadius.circular(14),
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.black26,
+                      blurRadius: 4,
+                    ),
+                  ],
                 ),
                 child: Text(
-                  context.read<SettingsProvider>().formatPrice(property.price, compact: true),
+                  context.read<SettingsProvider>().formatPrice(property.price),
                   style: const TextStyle(
-                    color: Colors.black,
-                    fontSize: 14,
+                    color: Colors.white,
+                    fontSize: 13,
                     fontWeight: FontWeight.w800,
                   ),
                 ),
               ),
-              const SizedBox(width: 8),
-              // Property specs
+              const SizedBox(width: 6),
+              // Amenities
               if (property.size.bedrooms != null && property.size.bedrooms! > 0)
-                _buildSpecChip(Icons.bed_outlined, '${property.size.bedrooms}'),
+                _buildSpecChip(Icons.bed_rounded, '${property.size.bedrooms} Bed'),
               if (property.size.bathrooms != null && property.size.bathrooms! > 0)
-                _buildSpecChip(Icons.bathtub_outlined, '${property.size.bathrooms}'),
-              _buildSpecChip(Icons.square_foot, '${property.size.totalArea}'),
-            ],
-          ),
-          const SizedBox(height: 12),
-
-          // Scroll indicator
-          Row(
-            children: [
-              Text(
-                '${_currentIndex + 1}/${_filtered.length}',
-                style: TextStyle(
-                  color: Colors.white.withOpacity(0.5),
-                  fontSize: 11,
-                ),
-              ),
-              const SizedBox(width: 8),
-              Icon(
-                Icons.keyboard_arrow_up_rounded,
-                color: Colors.white.withOpacity(0.5),
-                size: 16,
-              ),
-              Text(
-                'Swipe for more',
-                style: TextStyle(
-                  color: Colors.white.withOpacity(0.5),
-                  fontSize: 11,
-                ),
-              ),
+                _buildSpecChip(Icons.bathtub_rounded, '${property.size.bathrooms} Bath'),
             ],
           ),
         ],
@@ -711,14 +809,17 @@ class _ExploreScreenState extends State<ExploreScreen>
   }
 
   // ─── HELPERS ───────────────────────────────────────────────
-  void _shareProperty(Property property) async {
-    final text =
-        '🏠 Check out this property on dnb Homes!\n${property.title}\n📍 ${property.location}\n💰 UGX ${_formatPrice(property.price)}';
-    final uri = Uri.parse(
-        'https://wa.me/?text=${Uri.encodeComponent(text)}');
-    if (await canLaunchUrl(uri)) {
-      await launchUrl(uri, mode: LaunchMode.externalApplication);
-    }
+  void _shareProperty(Property property) {
+    final String shareText =
+        '🏠 dnb Homes Tour: Discover this property!\n\n'
+        '${property.title}\n'
+        '📍 ${property.location}\n'
+        '💰 ${context.read<SettingsProvider>().formatPrice(property.price)}\n\n'
+        'View it here: https://domify.nilebitlabs.com/property/${property.id}';
+    Share.share(
+      shareText,
+      subject: '${property.title} — dnb Homes Feed',
+    );
   }
 
   void _callAgent(Property property) async {
@@ -841,6 +942,73 @@ class _ExploreScreenState extends State<ExploreScreen>
           ],
         ),
       ),
+    );
+  }
+}
+
+class AnimatedHeartOverlay extends StatefulWidget {
+  const AnimatedHeartOverlay({super.key});
+
+  @override
+  State<AnimatedHeartOverlay> createState() => _AnimatedHeartOverlayState();
+}
+
+class _AnimatedHeartOverlayState extends State<AnimatedHeartOverlay>
+    with SingleTickerProviderStateMixin {
+  late AnimationController _animController;
+  late Animation<double> _scaleAnimation;
+  late Animation<double> _opacityAnimation;
+
+  @override
+  void initState() {
+    super.initState();
+    _animController = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 500),
+    );
+    _scaleAnimation = TweenSequence<double>([
+      TweenSequenceItem(tween: Tween(begin: 0.2, end: 1.3).chain(CurveTween(curve: Curves.easeOut)), weight: 35),
+      TweenSequenceItem(tween: Tween(begin: 1.3, end: 1.0).chain(CurveTween(curve: Curves.easeIn)), weight: 25),
+      TweenSequenceItem(tween: Tween(begin: 1.0, end: 0.0).chain(CurveTween(curve: Curves.easeIn)), weight: 40),
+    ]).animate(_animController);
+    _opacityAnimation = TweenSequence<double>([
+      TweenSequenceItem(tween: Tween(begin: 0.0, end: 1.0), weight: 30),
+      TweenSequenceItem(tween: Tween(begin: 1.0, end: 1.0), weight: 30),
+      TweenSequenceItem(tween: Tween(begin: 1.0, end: 0.0), weight: 40),
+    ]).animate(_animController);
+    _animController.forward();
+  }
+
+  @override
+  void dispose() {
+    _animController.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return AnimatedBuilder(
+      animation: _animController,
+      builder: (context, child) {
+        return Opacity(
+          opacity: _opacityAnimation.value,
+          child: Transform.scale(
+            scale: _scaleAnimation.value,
+            child: const Icon(
+              Icons.favorite_rounded,
+              color: Colors.red,
+              size: 100,
+              shadows: [
+                BoxShadow(
+                  color: Colors.black38,
+                  blurRadius: 15,
+                  spreadRadius: 2,
+                ),
+              ],
+            ),
+          ),
+        );
+      },
     );
   }
 }

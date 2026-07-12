@@ -658,9 +658,15 @@ class _FavoritesScreenState extends State<FavoritesScreen>
             child: isListView 
               ? SizedBox(
                   height: MediaQuery.of(context).size.width > 600 ? 320 : 280,  // Responsive height
-                  child: PropertyCard(propertyId: property.id),
+                  child: PropertyCard(
+                    propertyId: property.id,
+                    initialProperty: property,
+                  ),
                 )
-              : PropertyCard(propertyId: property.id),
+              : PropertyCard(
+                  propertyId: property.id,
+                  initialProperty: property,
+                ),
           ),
         );
       },

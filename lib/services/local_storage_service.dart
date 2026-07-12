@@ -42,7 +42,7 @@ class LocalStorageService {
 
   Future<void> addToCompare(String propertyId) async {
     final compareList = await getCompareList();
-    if (compareList.length < 3 && !compareList.contains(propertyId)) {
+    if (compareList.length < 2 && !compareList.contains(propertyId)) {
       compareList.add(propertyId);
       await _prefs.setString(_compareKey, json.encode(compareList));
     }
@@ -90,4 +90,4 @@ class LocalStorageService {
   Future<void> clearAllData() async {
     await _prefs.clear();
   }
-} 
+}

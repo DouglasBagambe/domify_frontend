@@ -43,8 +43,11 @@ class _AllPropertiesScreenState extends State<AllPropertiesScreen> {
     super.initState();
     _properties = widget.initialProperties;
     _filteredProperties = widget.initialProperties;
+    _isLoading = widget.initialProperties.isEmpty;
     _scrollController.addListener(_onScroll);
-    _loadProperties();
+    if (widget.initialProperties.isEmpty) {
+      _loadProperties();
+    }
   }
 
   @override
@@ -62,7 +65,7 @@ class _AllPropertiesScreenState extends State<AllPropertiesScreen> {
 
   Future<void> _loadProperties() async {
     try {
-      final properties = await ApiService.getRecentProperties();
+      final properties = await ApiService.getAllProperties();
       setState(() {
         _properties = properties;
         _isLoading = false;
@@ -466,6 +469,7 @@ class _AllPropertiesScreenState extends State<AllPropertiesScreen> {
                       final property = _filteredProperties[index];
                       return PropertyCard(
                         propertyId: property.id,
+                        initialProperty: property,
                       );
                     },
                   ),
@@ -474,4 +478,4 @@ class _AllPropertiesScreenState extends State<AllPropertiesScreen> {
       ),
     );
   }
-} 
+}

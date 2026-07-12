@@ -3,16 +3,18 @@ import 'package:flutter_svg/flutter_svg.dart';
 import 'package:provider/provider.dart';
 import '../models/property_model.dart';
 import '../providers/settings_provider.dart';
+import '../providers/compare_provider.dart';
 import '../services/api_service.dart';
 import '../services/notification_service.dart';
 import '../widgets/property_card.dart';
-import 'filter_screen.dart';
 import 'explore_screen.dart';
 import 'compare_screen.dart';
 import 'favorites_screen.dart';
 import 'settings_screen.dart';
 import 'all_properties_screen.dart';
 import 'loading_screen.dart';
+import 'appointments_screen.dart';
+import 'search_screen.dart';
 
 /// Maps display category name → PropertyType enum name
 const Map<String, String> _categoryTypeMap = {
@@ -40,6 +42,7 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
   late AnimationController _animationController;
   late Animation<double> _fadeAnimation;
   String _selectedCategory = 'All';
+  String? _selectedQuickFilter;
 
   final List<String> _categories = [
     'All',
@@ -51,37 +54,46 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
     'Studio',
   ];
 
-  final List<Map<String, dynamic>> _quickActions = [
-    {
-      'icon': Icons.search_rounded,
-      'label': 'Filter',
-      'color': Color(0xFF178F5B)
-    },
-    {
-      'icon': Icons.fiber_new_rounded,
-      'label': 'New Listings',
-      'color': Color(0xFF1A3C6E)
-    },
-    {
-      'icon': Icons.auto_awesome_rounded,
-      'label': 'Explore',
-      'color': Color(0xFFA17324)
-    },
-    {
-      'icon': Icons.bookmarks_outlined,
-      'label': 'Saved',
-      'color': Color(0xFF178F5B)
-    },
+  final List<String> _quickFilters = const [
+    '📍 Kampala',
+    '🏠 House',
+    '🏢 Apartment',
+    '💰 Under 500k',
+    '🛏 2 Bedrooms',
   ];
 
   List<Property> _filterByCategory(List<Property> properties) {
-    if (_selectedCategory == 'All') return properties;
+    if (_selectedCategory == 'All') return _filterByQuickFilter(properties);
     final targetType = _categoryTypeMap[_selectedCategory];
     if (targetType == null) return properties;
-    return properties
+    final categoryFiltered = properties
         .where((p) =>
             p.type.toString().split('.').last.toLowerCase() == targetType)
         .toList();
+    return _filterByQuickFilter(categoryFiltered);
+  }
+
+  List<Property> _filterByQuickFilter(List<Property> properties) {
+    switch (_selectedQuickFilter) {
+      case '📍 Kampala':
+        return properties
+            .where((p) => p.location.toLowerCase().contains('kampala'))
+            .toList();
+      case '🏠 House':
+        return properties
+            .where((p) => p.type.toString().split('.').last.toLowerCase() == 'house')
+            .toList();
+      case '🏢 Apartment':
+        return properties
+            .where((p) => p.type.toString().split('.').last.toLowerCase() == 'apartment')
+            .toList();
+      case '💰 Under 500k':
+        return properties.where((p) => p.price <= 500000).toList();
+      case '🛏 2 Bedrooms':
+        return properties.where((p) => (p.size.bedrooms ?? 0) == 2).toList();
+      default:
+        return properties;
+    }
   }
 
   @override
@@ -112,16 +124,17 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
 
   Future<void> _loadProperties({bool forceRefresh = false}) async {
     try {
-      final results = await Future.wait([
-        ApiService.getFeaturedProperties(forceRefresh: forceRefresh),
-        ApiService.getRecentProperties(forceRefresh: forceRefresh),
-        ApiService.getAllProperties(forceRefresh: forceRefresh),
-      ]);
+      final properties =
+          await ApiService.getAllProperties(forceRefresh: forceRefresh);
+      final recentProperties = List<Property>.from(properties)
+        ..sort((a, b) => b.datePosted.compareTo(a.datePosted));
+      final featuredProperties =
+          properties.where((property) => property.isFeatured).toList();
 
       setState(() {
-        _featuredProperties = results[0];
-        _recentProperties = results[1];
-        _allProperties = results[2];
+        _featuredProperties = featuredProperties;
+        _recentProperties = recentProperties;
+        _allProperties = properties;
         _isLoading = false;
       });
       _animationController.forward();
@@ -181,8 +194,8 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
   Widget build(BuildContext context) {
     return Scaffold(
       body: _isLoading ? const LoadingScreen() : _buildMainContent(),
-      // floatingActionButton: _currentIndex == 0 ? _buildFloatingActionButton() : null,
-      // floatingActionButtonLocation: FloatingActionButtonLocation.endFloat,
+      floatingActionButton: _buildCompareFloatingButton(),
+      floatingActionButtonLocation: FloatingActionButtonLocation.centerFloat,
       bottomNavigationBar: _buildBottomNavigationBar(),
     );
   }
@@ -194,10 +207,9 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
         index: _currentIndex,
         children: [
           _buildHomeContent(),
-          const FavoritesScreen(),
-          CompareScreen(onGoHome: () => setState(() => _currentIndex = 0)),
           const ExploreScreen(),
-
+          const FavoritesScreen(),
+          const AppointmentsScreen(showBackButton: false),
         ],
       ),
     );
@@ -212,11 +224,14 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
         slivers: [
           _buildDynamicAppBar(),
           _buildWelcomeHero(),
-          _buildQuickActions(),
+          _buildPremiumSearchBar(),
+          _buildQuickFilterChips(),
           _buildCategoryFilter(),
           _buildFeaturedSection(),
-          _buildRecentSection(),
-          _buildAllPropertiesSection(),
+          _buildRecommendedSection(),
+          _buildPopularLocationsSection(),
+          _buildTrendingSection(),
+          _buildLatestListingsSection(),
           const SliverPadding(padding: EdgeInsets.only(bottom: 100)),
         ],
       ),
@@ -256,7 +271,7 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
                         colors: [Color(0xFF178F5B), Color(0xFF1A3C6E)],
                       ).createShader(bounds),
                       child: const Text(
-                        '',
+                        'dnb ',
                         style: TextStyle(
                           fontSize: 20,
                           fontWeight: FontWeight.w800,
@@ -397,117 +412,125 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
     );
   }
 
-  void _handleQuickAction(String label) {
-    switch (label) {
-      case 'Filter':
-        Navigator.push(
-          context,
-          MaterialPageRoute(builder: (_) => const FilterScreen()),
-        );
-        break;
-      case 'New Listings':
-        Navigator.push(
-          context,
-          MaterialPageRoute(
-            builder: (_) => AllPropertiesScreen(
-              title: 'New Listings',
-              initialProperties: _recentProperties,
-              showFeaturedOnly: false,
-            ),
-          ),
-        );
-        break;
-      case 'Explore':
-        setState(() => _currentIndex = 2);
-        break;
-      case 'Saved':
-        setState(() => _currentIndex = 1);
-        break;
-    }
-  }
-
-  Widget _buildQuickActions() {
+  Widget _buildPremiumSearchBar() {
     final isDark = Theme.of(context).brightness == Brightness.dark;
     return SliverToBoxAdapter(
       child: Padding(
-        padding: const EdgeInsets.fromLTRB(16, 20, 16, 0),
-        child: Row(
-          children: _quickActions.asMap().entries.map((entry) {
-            final action = entry.value;
-            final Color accent = action['color'] as Color;
-            final IconData icon = action['icon'] as IconData;
-            final String label = action['label'] as String;
-
-            return Expanded(
-              child: GestureDetector(
-                onTap: () => _handleQuickAction(label),
-                child: AnimatedContainer(
-                  duration: const Duration(milliseconds: 180),
-                  margin: const EdgeInsets.symmetric(horizontal: 5),
-                  padding: const EdgeInsets.symmetric(vertical: 16),
-                  decoration: BoxDecoration(
-                    borderRadius: BorderRadius.circular(18),
-                    color: isDark
-                        ? accent.withOpacity(0.10)
-                        : accent.withOpacity(0.07),
-                    border: Border.all(
-                      color: accent.withOpacity(isDark ? 0.22 : 0.18),
-                      width: 1.2,
-                    ),
-                    boxShadow: [
-                      BoxShadow(
-                        color: accent.withOpacity(0.10),
-                        blurRadius: 12,
-                        offset: const Offset(0, 4),
-                      ),
-                    ],
+        padding: const EdgeInsets.fromLTRB(16, 18, 16, 0),
+        child: Material(
+          color: Colors.transparent,
+          child: InkWell(
+            borderRadius: BorderRadius.circular(24),
+            onTap: () => Navigator.push(
+              context,
+              MaterialPageRoute(builder: (_) => const SearchScreen()),
+            ),
+            child: Container(
+              padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 18),
+              decoration: BoxDecoration(
+                color: isDark ? const Color(0xFF131B2E) : Colors.white,
+                borderRadius: BorderRadius.circular(24),
+                border: Border.all(
+                  color: isDark
+                      ? Colors.white.withOpacity(0.08)
+                      : Colors.black.withOpacity(0.05),
+                ),
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.black.withOpacity(isDark ? 0.20 : 0.08),
+                    blurRadius: 22,
+                    offset: const Offset(0, 12),
                   ),
-                  child: Column(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      // Gradient blob icon
-                      Container(
-                        width: 44,
-                        height: 44,
-                        decoration: BoxDecoration(
-                          gradient: LinearGradient(
-                            begin: Alignment.topLeft,
-                            end: Alignment.bottomRight,
-                            colors: [
-                              accent,
-                              accent.withOpacity(0.65),
-                            ],
+                ],
+              ),
+              child: Row(
+                children: [
+                  Icon(
+                    Icons.search_rounded,
+                    color: Theme.of(context).colorScheme.primary,
+                    size: 24,
+                  ),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: Text(
+                      'Search properties, locations or agents...',
+                      style: Theme.of(context).textTheme.bodyLarge?.copyWith(
+                            color: Theme.of(context).colorScheme.onSurface.withOpacity(0.62),
+                            fontWeight: FontWeight.w600,
                           ),
-                          borderRadius: BorderRadius.circular(13),
-                          boxShadow: [
-                            BoxShadow(
-                              color: accent.withOpacity(0.35),
-                              blurRadius: 10,
-                              offset: const Offset(0, 4),
-                            ),
-                          ],
-                        ),
-                        child: Icon(icon, color: Colors.white, size: 20),
-                      ),
-                      const SizedBox(height: 10),
-                      Text(
-                        label,
-                        style: TextStyle(
-                          fontSize: 11,
-                          fontWeight: FontWeight.w700,
-                          color: isDark
-                              ? accent.withOpacity(0.95)
-                              : accent.withOpacity(0.85),
-                          letterSpacing: 0.2,
-                        ),
-                        textAlign: TextAlign.center,
-                      ),
-                    ],
+                    ),
+                  ),
+                  Icon(
+                    Icons.tune_rounded,
+                    color: Theme.of(context).colorScheme.onSurface.withOpacity(0.38),
+                    size: 20,
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildQuickFilterChips() {
+    final primary = Theme.of(context).colorScheme.primary;
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    return SliverToBoxAdapter(
+      child: SizedBox(
+        height: 62,
+        child: ListView.builder(
+          scrollDirection: Axis.horizontal,
+          physics: const BouncingScrollPhysics(),
+          padding: const EdgeInsets.fromLTRB(16, 14, 16, 8),
+          itemCount: _quickFilters.length,
+          itemBuilder: (context, index) {
+            final filter = _quickFilters[index];
+            final isSelected = _selectedQuickFilter == filter;
+            return Padding(
+              padding: const EdgeInsets.only(right: 10),
+              child: GestureDetector(
+                onTap: () {
+                  setState(() {
+                    _selectedQuickFilter = isSelected ? null : filter;
+                    if (isSelected && (filter == '🏠 House' || filter == '🏢 Apartment')) {
+                      _selectedCategory = 'All';
+                    } else {
+                      if (filter == '🏠 House') _selectedCategory = 'House';
+                      if (filter == '🏢 Apartment') _selectedCategory = 'Apartment';
+                    }
+                  });
+                },
+                child: AnimatedContainer(
+                  duration: const Duration(milliseconds: 220),
+                  curve: Curves.easeOut,
+                  padding: const EdgeInsets.symmetric(horizontal: 16),
+                  alignment: Alignment.center,
+                  decoration: BoxDecoration(
+                    color: isSelected
+                        ? primary.withOpacity(isDark ? 0.22 : 0.12)
+                        : isDark
+                            ? Colors.white.withOpacity(0.07)
+                            : Colors.white,
+                    borderRadius: BorderRadius.circular(18),
+                    border: Border.all(
+                      color: isSelected
+                          ? primary.withOpacity(0.35)
+                          : Colors.transparent,
+                    ),
+                  ),
+                  child: Text(
+                    filter,
+                    style: TextStyle(
+                      color: isSelected ? primary : Theme.of(context).colorScheme.onSurface.withOpacity(0.78),
+                      fontWeight: FontWeight.w700,
+                    ),
                   ),
                 ),
               ),
             );
-          }).toList(),
+          },
         ),
       ),
     );
@@ -640,19 +663,162 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
     );
   }
 
-  Widget _buildRecentSection() {
+  Widget _buildRecommendedSection() {
+    final filtered = _filterByCategory(_allProperties);
+    final recommended = filtered.where((Property property) {
+      final type = property.type.toString().split('.').last.toLowerCase();
+      return property.isFeatured || type == 'house' || type == 'apartment';
+    }).take(8).toList();
+    return SliverToBoxAdapter(
+      child: Column(
+        children: [
+          _buildSectionHeader(
+            'Recommended For You',
+            'Smart picks based on popular searches',
+            () => Navigator.push(
+              context,
+              MaterialPageRoute(
+                builder: (context) => AllPropertiesScreen(
+                  title: 'Recommended For You',
+                  initialProperties: recommended,
+                  showFeaturedOnly: false,
+                ),
+              ),
+            ),
+          ),
+          SizedBox(
+            height: 280,
+            child: recommended.isEmpty
+                ? _buildEmptyState('No recommendations yet', Icons.auto_awesome_outlined)
+                : _buildHorizontalPropertyList(recommended),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildPopularLocationsSection() {
+    final Map<String, int> locationCounts = <String, int>{};
+    for (final Property property in _allProperties) {
+      final String location = property.location.split(',').first.trim();
+      if (location.isEmpty) continue;
+      locationCounts[location] = (locationCounts[location] ?? 0) + 1;
+    }
+    final locations = locationCounts.entries.toList()
+      ..sort((a, b) => b.value.compareTo(a.value));
+
+    return SliverToBoxAdapter(
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          _buildSectionHeader(
+            'Popular Locations',
+            'Areas people are exploring now',
+            () => Navigator.push(
+              context,
+              MaterialPageRoute(builder: (_) => const SearchScreen()),
+            ),
+          ),
+          SizedBox(
+            height: 112,
+            child: ListView.builder(
+              scrollDirection: Axis.horizontal,
+              physics: const BouncingScrollPhysics(),
+              padding: const EdgeInsets.symmetric(horizontal: 16),
+              itemCount: locations.take(8).length,
+              itemBuilder: (context, index) {
+                final entry = locations[index];
+                return GestureDetector(
+                  onTap: () => Navigator.push(
+                    context,
+                    MaterialPageRoute(builder: (_) => const SearchScreen()),
+                  ),
+                  child: Container(
+                    width: 170,
+                    margin: const EdgeInsets.only(right: 12),
+                    padding: const EdgeInsets.all(16),
+                    decoration: BoxDecoration(
+                      color: Theme.of(context).colorScheme.surface,
+                      borderRadius: BorderRadius.circular(20),
+                      border: Border.all(
+                        color: Theme.of(context).colorScheme.outline.withOpacity(0.10),
+                      ),
+                    ),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        const Icon(Icons.location_on_rounded, color: Color(0xFF178F5B), size: 22),
+                        const SizedBox(height: 8),
+                        Text(
+                          entry.key,
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                          style: const TextStyle(fontWeight: FontWeight.w800),
+                        ),
+                        Text(
+                          '${entry.value} listings',
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                          style: Theme.of(context).textTheme.bodySmall,
+                        ),
+                      ],
+                    ),
+                  ),
+                );
+              },
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildTrendingSection() {
+    final trending = _filterByCategory(_allProperties).toList()
+      ..sort((a, b) => (b.views + b.favorites).compareTo(a.views + a.favorites));
+    final displayed = trending.take(8).toList();
+    return SliverToBoxAdapter(
+      child: Column(
+        children: [
+          _buildSectionHeader(
+            'Trending This Week',
+            'Listings getting the most attention',
+            () => Navigator.push(
+              context,
+              MaterialPageRoute(
+                builder: (context) => AllPropertiesScreen(
+                  title: 'Trending This Week',
+                  initialProperties: displayed,
+                  showFeaturedOnly: false,
+                ),
+              ),
+            ),
+          ),
+          SizedBox(
+            height: 280,
+            child: displayed.isEmpty
+                ? _buildEmptyState('No trending listings yet', Icons.trending_up_rounded)
+                : _buildHorizontalPropertyList(displayed),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildLatestListingsSection() {
     final filtered = _filterByCategory(_recentProperties);
     return SliverToBoxAdapter(
       child: Column(
         children: [
           _buildSectionHeader(
-            'Recent Listings',
-            'Latest properties on market',
+            'Latest Listings',
+            'Fresh properties on the market',
             () => Navigator.push(
               context,
               MaterialPageRoute(
                 builder: (context) => AllPropertiesScreen(
-                  title: 'Recent Listings',
+                  title: 'Latest Listings',
                   initialProperties: filtered,
                   showFeaturedOnly: false,
                 ),
@@ -665,50 +831,6 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
                 ? _buildEmptyState('No recent properties', Icons.access_time)
                 : _buildHorizontalPropertyList(filtered),
           ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildAllPropertiesSection() {
-    final filtered = _filterByCategory(_allProperties);
-    final displayed = filtered.take(6).toList();
-    return SliverToBoxAdapter(
-      child: Column(
-        children: [
-          _buildSectionHeader(
-            'All Properties',
-            'Browse our complete collection',
-            () => Navigator.push(
-              context,
-              MaterialPageRoute(
-                builder: (context) => AllPropertiesScreen(
-                  title: 'All Properties',
-                  initialProperties: filtered,
-                  showFeaturedOnly: false,
-                ),
-              ),
-            ),
-          ),
-          displayed.isEmpty
-              ? _buildEmptyState(
-                  'No properties in this category', Icons.home_outlined)
-              : GridView.builder(
-                  shrinkWrap: true,
-                  physics: const NeverScrollableScrollPhysics(),
-                  padding: const EdgeInsets.symmetric(horizontal: 16),
-                  gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-                    crossAxisCount:
-                        MediaQuery.of(context).size.width > 600 ? 3 : 2,
-                    crossAxisSpacing: 12,
-                    mainAxisSpacing: 12,
-                    childAspectRatio: 0.75,
-                  ),
-                  itemCount: displayed.length,
-                  itemBuilder: (context, index) {
-                    return PropertyCard(propertyId: displayed[index].id);
-                  },
-                ),
         ],
       ),
     );
@@ -773,7 +895,10 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
         return Container(
           width: cardWidth,
           margin: const EdgeInsets.only(right: 16),
-          child: PropertyCard(propertyId: properties[index].id),
+          child: PropertyCard(
+            propertyId: properties[index].id,
+            initialProperty: properties[index],
+          ),
         );
       },
     );
@@ -846,9 +971,9 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
   /// Per-tab accent colors — ordered by nav index
   static const _tabColors = [
     Color(0xFF178F5B), // 0 Home     — emerald green (brand)
-    Color(0xFFA17324), // 1 Favorites — gold
-    Color(0xFF3B82F6), // 2 Compare   — blue
-    Color(0xFF178F5B), // 3 Explore   — emerald green
+    Color(0xFF178F5B), // 1 Discover — emerald green
+    Color(0xFFA17324), // 2 Favorites — gold
+    Color(0xFF1A3C6E), // 3 Bookings  — navy
   ];
 
   Widget _buildBottomNavigationBar() {
@@ -882,9 +1007,9 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
             mainAxisAlignment: MainAxisAlignment.spaceAround,
             children: [
               _buildNavItem(0, null, 'Home', isLogo: true),
-              _buildNavItem(1, Icons.favorite_rounded, 'Favorites'),
-              _buildNavItem(2, Icons.balance_rounded, 'Compare'),
-              _buildNavItem(3, Icons.auto_awesome_rounded, 'Explore'),
+              _buildNavItem(1, Icons.explore_rounded, 'Discover'),
+              _buildNavItem(2, Icons.favorite_rounded, 'Favorites'),
+              _buildNavItem(3, Icons.calendar_month_rounded, 'Bookings'),
             ],
           ),
         ),
@@ -976,6 +1101,25 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
           ),
         ),
       ),
+    );
+  }
+
+  Widget? _buildCompareFloatingButton() {
+    final count = context.watch<CompareProvider>().compareList.length;
+    if (count < 2) return null;
+    return FloatingActionButton.extended(
+      onPressed: () => Navigator.push(
+        context,
+        MaterialPageRoute(
+          builder: (_) => CompareScreen(
+            onGoHome: () => Navigator.pop(context),
+          ),
+        ),
+      ),
+      icon: const Icon(Icons.balance_rounded),
+      label: Text('Compare ($count)'),
+      backgroundColor: Theme.of(context).colorScheme.primary,
+      foregroundColor: Theme.of(context).colorScheme.onPrimary,
     );
   }
 }

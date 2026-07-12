@@ -7,7 +7,12 @@ import '../widgets/legal_page_widgets.dart';
 import 'property_detail_screen.dart';
 
 class AppointmentsScreen extends StatefulWidget {
-  const AppointmentsScreen({super.key});
+  final bool showBackButton;
+
+  const AppointmentsScreen({
+    super.key,
+    this.showBackButton = true,
+  });
 
   @override
   State<AppointmentsScreen> createState() => _AppointmentsScreenState();
@@ -47,7 +52,8 @@ class _AppointmentsScreenState extends State<AppointmentsScreen>
                 pinned: true,
                 forceElevated: innerBoxIsScrolled,
                 backgroundColor: isDark ? const Color(0xFF0B111E) : Colors.white,
-                leading: const LegalBackButton(),
+                automaticallyImplyLeading: widget.showBackButton,
+                leading: widget.showBackButton ? const LegalBackButton() : null,
                 flexibleSpace: FlexibleSpaceBar(
                   background: Container(
                     decoration: BoxDecoration(

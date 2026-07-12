@@ -66,6 +66,22 @@ class ApiService {
     if (cached != null) {
       return Property.fromJson(json.decode(cached));
     }
+
+    final cachedList = await ApiCache.get('all_properties');
+    if (cachedList != null) {
+      Property? property;
+      for (final item in _parseList(cachedList)) {
+        if (item.id == id) {
+          property = item;
+          break;
+        }
+      }
+      if (property != null) {
+        await ApiCache.set('property_$id', json.encode(property.toJson()));
+        return property;
+      }
+    }
+
     final response = await http.get(Uri.parse('$baseUrl/properties/$id'));
     if (response.statusCode == 200) {
       await ApiCache.set('property_$id', response.body);

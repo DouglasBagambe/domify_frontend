@@ -148,6 +148,7 @@ class _PropertyDetailScreenState extends State<PropertyDetailScreen> {
               Consumer<CompareProvider>(
                 builder: (context, compareProvider, child) {
                   final isInCompare = compareProvider.isInCompare(_property.id);
+                  final canAdd = compareProvider.canAddMore() || isInCompare;
                   return IconButton(
                     icon: Container(
                       padding: const EdgeInsets.all(6),
@@ -161,13 +162,15 @@ class _PropertyDetailScreenState extends State<PropertyDetailScreen> {
                         size: 20,
                       ),
                     ),
-                    onPressed: () {
-                      if (isInCompare) {
-                        compareProvider.removeFromCompare(_property.id);
-                      } else {
-                        compareProvider.addToCompare(_property.id);
-                      }
-                    },
+                    onPressed: canAdd
+                        ? () {
+                            if (isInCompare) {
+                              compareProvider.removeFromCompare(_property.id);
+                            } else {
+                              compareProvider.addToCompare(_property.id);
+                            }
+                          }
+                        : null,
                   );
                 },
               ),
@@ -542,6 +545,39 @@ class _PropertyDetailScreenState extends State<PropertyDetailScreen> {
                         favoritesProvider.addFavorite(_property.id);
                       }
                     },
+                  );
+                },
+              ),
+            ),
+            const SizedBox(width: 10),
+            // Compare shortcut
+            Container(
+              decoration: BoxDecoration(
+                border: Border.all(color: cs.outline.withOpacity(0.2)),
+                borderRadius: BorderRadius.circular(14),
+              ),
+              child: Consumer<CompareProvider>(
+                builder: (context, compareProvider, child) {
+                  final isInCompare = compareProvider.isInCompare(_property.id);
+                  final canAdd = compareProvider.canAddMore() || isInCompare;
+                  return IconButton(
+                    icon: Icon(
+                      isInCompare ? Icons.balance_rounded : Icons.balance_outlined,
+                      color: isInCompare
+                          ? cs.primary
+                          : canAdd
+                              ? cs.onSurfaceVariant
+                              : cs.onSurfaceVariant.withOpacity(0.38),
+                    ),
+                    onPressed: canAdd
+                        ? () {
+                            if (isInCompare) {
+                              compareProvider.removeFromCompare(_property.id);
+                            } else {
+                              compareProvider.addToCompare(_property.id);
+                            }
+                          }
+                        : null,
                   );
                 },
               ),

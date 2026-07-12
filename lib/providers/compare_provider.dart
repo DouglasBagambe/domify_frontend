@@ -17,14 +17,14 @@ class CompareProvider with ChangeNotifier {
   }
 
   Future<void> addToCompare(String propertyId) async {
-      await _storage.addToCompare(propertyId);
+    await _storage.addToCompare(propertyId);
     await _loadCompareList();
   }
 
   Future<void> removeFromCompare(String propertyId) async {
-      await _storage.removeFromCompare(propertyId);
+    await _storage.removeFromCompare(propertyId);
     await _loadCompareList();
-    }
+  }
 
   Future<void> clearCompare() async {
     await _storage.clearCompareList();
@@ -36,6 +36,6 @@ class CompareProvider with ChangeNotifier {
   }
 
   bool canAddMore() {
-    return _compareList.length < 3;
+    return _compareList.length < 2;
   }
-} 
+}

@@ -11,10 +11,12 @@ import '../screens/property_detail_screen.dart';
 
 class PropertyCard extends StatefulWidget {
   final String propertyId;
+  final Property? initialProperty;
 
   const PropertyCard({
     Key? key,
     required this.propertyId,
+    this.initialProperty,
   }) : super(key: key);
 
   @override
@@ -29,7 +31,23 @@ class _PropertyCardState extends State<PropertyCard> {
   @override
   void initState() {
     super.initState();
+    if (widget.initialProperty != null) {
+      _property = widget.initialProperty;
+      _isLoading = false;
+      return;
+    }
     _loadProperty();
+  }
+
+  @override
+  void didUpdateWidget(covariant PropertyCard oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (widget.initialProperty != oldWidget.initialProperty &&
+        widget.initialProperty != null) {
+      _property = widget.initialProperty;
+      _isLoading = false;
+      _error = null;
+    }
   }
 
   Future<void> _loadProperty() async {
@@ -247,7 +265,7 @@ class _PropertyCardState extends State<PropertyCard> {
     return Consumer<CompareProvider>(
       builder: (context, compareProvider, child) {
         final isInCompare = compareProvider.isInCompare(_property!.id);
-        final canAdd = compareProvider.compareList.length < 2 || isInCompare;
+        final canAdd = compareProvider.canAddMore() || isInCompare;
         return GestureDetector(
           onTap: canAdd
               ? () {
@@ -269,7 +287,11 @@ class _PropertyCardState extends State<PropertyCard> {
               isInCompare
                   ? Icons.balance
                   : Icons.balance_outlined,
-              color: isInCompare ? Colors.cyanAccent : Colors.white,
+              color: isInCompare
+                  ? Colors.cyanAccent
+                  : canAdd
+                      ? Colors.white
+                      : Colors.white54,
               size: 16,
             ),
           ),

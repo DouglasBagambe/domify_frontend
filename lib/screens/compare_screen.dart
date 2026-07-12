@@ -364,11 +364,11 @@ class _CompareScreenState extends State<CompareScreen>
                 decoration: BoxDecoration(
                   borderRadius: BorderRadius.circular(20),
                   gradient: const LinearGradient(
-                    colors: <Color>[Color(0xFF10B981), Color(0xFF059669)],
+                    colors: <Color>[Color(0xFF3B82F6), Color(0xFF2563EB)],
                   ),
                 ),
                 child: const Icon(
-                  Icons.compare_arrows_rounded,
+                  Icons.balance_rounded,
                   color: Colors.white,
                   size: 30,
                 ),

@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -15,7 +17,6 @@ import 'screens/splash_screen.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  await NotificationService.init();
   final prefs = await SharedPreferences.getInstance();
   final storage = LocalStorageService(prefs);
   
@@ -33,6 +34,7 @@ void main() async {
       child: const MyApp(),
     ),
   );
+  unawaited(NotificationService.init());
 }
 
 class MyApp extends StatelessWidget {
