@@ -256,13 +256,16 @@ class _FavoritesScreenState extends State<FavoritesScreen>
                       begin: Alignment.topLeft,
                       end: Alignment.bottomRight,
                       colors: isDark
-                          ? const <Color>[Color(0xFF1F1115), Color(0xFF101827)]
-                          : const <Color>[Colors.white, Color(0xFFFFF5F5)],
+                          ? const <Color>[
+                              Color(0xFF101625),
+                              Color(0xFF111E18),
+                            ]
+                          : const <Color>[Colors.white, Color(0xFFEFFDF5)],
                     ),
                     border: Border.all(
                       color: isDark
-                          ? const Color(0xFF3B1E22)
-                          : const Color(0xFFFEE4E2),
+                          ? const Color(0xFF1E2D3B)
+                          : const Color(0xFFDCFCE7),
                     ),
                     boxShadow: <BoxShadow>[
                       BoxShadow(
@@ -303,7 +306,10 @@ class _FavoritesScreenState extends State<FavoritesScreen>
                         decoration: BoxDecoration(
                           borderRadius: BorderRadius.circular(20),
                           gradient: const LinearGradient(
-                            colors: <Color>[Color(0xFFD9383A), Color(0xFFF05252)],
+                            colors: <Color>[
+                              Color(0xFF178F5B),
+                              Color(0xFF1A3C6E),
+                            ],
                           ),
                         ),
                         child: const Icon(
@@ -328,34 +334,13 @@ class _FavoritesScreenState extends State<FavoritesScreen>
                             Text(
                               '${favoritesProvider.favorites.length} saved houses',
                               style: theme.textTheme.bodyMedium?.copyWith(
-                                color: isDark ? Colors.grey[400] : Colors.grey[650],
+                                color: textColor.withOpacity(0.58),
                                 fontWeight: FontWeight.w500,
                               ),
                             ),
                           ],
                         ),
                       ),
-                      if (favoritesProvider.favorites.isNotEmpty) ...[
-                        const SizedBox(width: 8),
-                        TextButton.icon(
-                          onPressed: () => _showClearAllDialog(context, favoritesProvider, theme),
-                          icon: const Icon(Icons.delete_sweep_rounded, size: 18, color: Color(0xFFD9383A)),
-                          label: const Text(
-                            'Clear',
-                            style: TextStyle(
-                              color: Color(0xFFD9383A),
-                              fontWeight: FontWeight.w600,
-                              fontSize: 13,
-                            ),
-                          ),
-                          style: TextButton.styleFrom(
-                            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(12),
-                            ),
-                          ),
-                        ),
-                      ],
                     ],
                   ),
                 ),

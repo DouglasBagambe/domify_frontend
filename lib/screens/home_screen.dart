@@ -195,7 +195,7 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
     return Scaffold(
       body: _isLoading ? const LoadingScreen() : _buildMainContent(),
       floatingActionButton: _buildCompareFloatingButton(),
-      floatingActionButtonLocation: FloatingActionButtonLocation.centerFloat,
+      floatingActionButtonLocation: FloatingActionButtonLocation.endFloat,
       bottomNavigationBar: _buildBottomNavigationBar(),
     );
   }
@@ -271,7 +271,7 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
                         colors: [Color(0xFF178F5B), Color(0xFF1A3C6E)],
                       ).createShader(bounds),
                       child: const Text(
-                        'dnb ',
+                        '',
                         style: TextStyle(
                           fontSize: 20,
                           fontWeight: FontWeight.w800,
@@ -1106,20 +1106,50 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
 
   Widget? _buildCompareFloatingButton() {
     final count = context.watch<CompareProvider>().compareList.length;
-    if (count < 2) return null;
-    return FloatingActionButton.extended(
-      onPressed: () => Navigator.push(
-        context,
-        MaterialPageRoute(
-          builder: (_) => CompareScreen(
-            onGoHome: () => Navigator.pop(context),
+    if (count == 0) return null;
+    return Stack(
+      clipBehavior: Clip.none,
+      children: [
+        FloatingActionButton(
+          heroTag: 'compare_fab',
+          onPressed: () => Navigator.push(
+            context,
+            MaterialPageRoute(
+              builder: (_) => CompareScreen(
+                onGoHome: () => Navigator.pop(context),
+              ),
+            ),
+          ),
+          backgroundColor: Theme.of(context).colorScheme.primary,
+          foregroundColor: Theme.of(context).colorScheme.onPrimary,
+          child: const Icon(Icons.balance_rounded),
+        ),
+        Positioned(
+          top: -5,
+          right: -5,
+          child: Container(
+            width: 22,
+            height: 22,
+            alignment: Alignment.center,
+            decoration: BoxDecoration(
+              color: const Color(0xFFA17324),
+              shape: BoxShape.circle,
+              border: Border.all(
+                color: Theme.of(context).colorScheme.surface,
+                width: 2,
+              ),
+            ),
+            child: Text(
+              '$count',
+              style: const TextStyle(
+                color: Colors.white,
+                fontSize: 11,
+                fontWeight: FontWeight.w800,
+              ),
+            ),
           ),
         ),
-      ),
-      icon: const Icon(Icons.balance_rounded),
-      label: Text('Compare ($count)'),
-      backgroundColor: Theme.of(context).colorScheme.primary,
-      foregroundColor: Theme.of(context).colorScheme.onPrimary,
+      ],
     );
   }
 }

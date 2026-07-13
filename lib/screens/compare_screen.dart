@@ -364,7 +364,10 @@ class _CompareScreenState extends State<CompareScreen>
                 decoration: BoxDecoration(
                   borderRadius: BorderRadius.circular(20),
                   gradient: const LinearGradient(
-                    colors: <Color>[Color(0xFF3B82F6), Color(0xFF2563EB)],
+                    colors: <Color>[
+                      Color(0xFF178F5B),
+                      Color(0xFF1A3C6E),
+                    ],
                   ),
                 ),
                 child: const Icon(
@@ -393,41 +396,13 @@ class _CompareScreenState extends State<CompareScreen>
                               ? '1 property added'
                               : 'Comparing 2 properties',
                       style: theme.textTheme.bodyMedium?.copyWith(
-                        color: isDark ? Colors.grey[400] : Colors.grey[650],
+                        color: textColor.withOpacity(0.58),
                         fontWeight: FontWeight.w500,
                       ),
                     ),
                   ],
                 ),
               ),
-              if (count > 0) ...[
-                const SizedBox(width: 8),
-                TextButton.icon(
-                  onPressed: () {
-                    Provider.of<CompareProvider>(context, listen: false)
-                        .clearCompare();
-                    setState(() {
-                      _error = null;
-                      _lastCompareIds = [];
-                    });
-                  },
-                  icon: const Icon(Icons.close_rounded, size: 16, color: Colors.red),
-                  label: const Text(
-                    'Clear',
-                    style: TextStyle(
-                      color: Colors.red,
-                      fontWeight: FontWeight.w600,
-                      fontSize: 13,
-                    ),
-                  ),
-                  style: TextButton.styleFrom(
-                    padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(12),
-                    ),
-                  ),
-                ),
-              ],
             ],
           ),
         ),
