@@ -24,12 +24,8 @@ class _FavoritesScreenState extends State<FavoritesScreen>
   String _sortBy = 'recent'; // recent, price_low, price_high, name
   bool _isGridView = true;
   
-  late AnimationController _fabAnimationController;
-  late AnimationController _headerAnimationController;
   late AnimationController _searchAnimationController;
   late AnimationController _staggerAnimationController;
-  late Animation<double> _fabAnimation;
-  late Animation<double> _headerAnimation;
   late Animation<double> _searchAnimation;
   late Animation<double> _staggerAnimation;
   
@@ -42,7 +38,6 @@ class _FavoritesScreenState extends State<FavoritesScreen>
     super.initState();
     _initializeAnimations();
     _loadFavoriteProperties();
-    _setupScrollListener();
     // Listen for external favorites changes (e.g. added from Home/Explore)
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (mounted) {
@@ -58,14 +53,6 @@ class _FavoritesScreenState extends State<FavoritesScreen>
   }
 
   void _initializeAnimations() {
-    _fabAnimationController = AnimationController(
-      duration: const Duration(milliseconds: 400),
-      vsync: this,
-    );
-    _headerAnimationController = AnimationController(
-      duration: const Duration(milliseconds: 800),
-      vsync: this,
-    );
     _searchAnimationController = AnimationController(
       duration: const Duration(milliseconds: 600),
       vsync: this,
@@ -74,43 +61,17 @@ class _FavoritesScreenState extends State<FavoritesScreen>
       duration: const Duration(milliseconds: 1200),
       vsync: this,
     );
-    
-    _fabAnimation = Tween<double>(begin: 0, end: 1).animate(
-      CurvedAnimation(parent: _fabAnimationController, curve: Curves.elasticOut),
-    );
-    _headerAnimation = Tween<double>(begin: 0, end: 1).animate(
-      CurvedAnimation(parent: _headerAnimationController, curve: Curves.easeOutBack),
-    );
+
     _searchAnimation = Tween<double>(begin: 0, end: 1).animate(
       CurvedAnimation(parent: _searchAnimationController, curve: Curves.easeOutCubic),
     );
     _staggerAnimation = Tween<double>(begin: 0, end: 1).animate(
       CurvedAnimation(parent: _staggerAnimationController, curve: Curves.easeOutQuart),
     );
-    
+
     // Start animations with staggered timing
-    Future.delayed(const Duration(milliseconds: 100), () {
-      if (mounted) _headerAnimationController.forward();
-    });
     Future.delayed(const Duration(milliseconds: 300), () {
       if (mounted) _searchAnimationController.forward();
-    });
-    Future.delayed(const Duration(milliseconds: 500), () {
-      if (mounted) _fabAnimationController.forward();
-    });
-  }
-
-  void _setupScrollListener() {
-    _scrollController.addListener(() {
-      if (_scrollController.offset > 100) {
-        if (_fabAnimationController.status != AnimationStatus.reverse) {
-          _fabAnimationController.reverse();
-        }
-      } else {
-        if (_fabAnimationController.status != AnimationStatus.forward) {
-          _fabAnimationController.forward();
-        }
-      }
     });
   }
 
@@ -196,8 +157,6 @@ class _FavoritesScreenState extends State<FavoritesScreen>
       Provider.of<FavoritesProvider>(context, listen: false)
           .removeListener(_onFavoritesChanged);
     } catch (_) {}
-    _fabAnimationController.dispose();
-    _headerAnimationController.dispose();
     _searchAnimationController.dispose();
     _staggerAnimationController.dispose();
     _searchController.dispose();
@@ -226,8 +185,6 @@ class _FavoritesScreenState extends State<FavoritesScreen>
                 _buildEmptyState(context, theme, isDark),
             ],
           ),
-          floatingActionButton: _buildAnimatedFAB(context, favoritesProvider, theme, isDark),
-          floatingActionButtonLocation: FloatingActionButtonLocation.endFloat,
         );
       },
     );
@@ -235,115 +192,132 @@ class _FavoritesScreenState extends State<FavoritesScreen>
 
   Widget _buildAnimatedAppBar(BuildContext context, FavoritesProvider favoritesProvider, ThemeData theme, bool isDark) {
     return SliverToBoxAdapter(
-      child: AnimatedBuilder(
-        animation: _headerAnimation,
-        builder: (context, child) {
-          final Color textColor = theme.brightness == Brightness.dark
-              ? Colors.white
-              : const Color(0xFF101828);
+      child: Builder(
+        builder: (context) {
+          final Color textColor =
+              isDark ? Colors.white : const Color(0xFF101828);
 
-          return Transform.translate(
-            offset: Offset(0, -30 * (1 - _headerAnimation.value)),
-            child: Opacity(
-              opacity: _headerAnimation.value.clamp(0.0, 1.0),
-              child: Padding(
-                padding: const EdgeInsets.fromLTRB(16, 12, 16, 10),
-                child: Container(
-                  padding: const EdgeInsets.all(20),
-                  decoration: BoxDecoration(
-                    borderRadius: BorderRadius.circular(28),
-                    gradient: LinearGradient(
-                      begin: Alignment.topLeft,
-                      end: Alignment.bottomRight,
-                      colors: isDark
-                          ? const <Color>[
-                              Color(0xFF101625),
-                              Color(0xFF111E18),
-                            ]
-                          : const <Color>[Colors.white, Color(0xFFEFFDF5)],
-                    ),
-                    border: Border.all(
-                      color: isDark
-                          ? const Color(0xFF1E2D3B)
-                          : const Color(0xFFDCFCE7),
-                    ),
-                    boxShadow: <BoxShadow>[
-                      BoxShadow(
-                        color: Colors.black.withOpacity(
-                          isDark ? 0.22 : 0.06,
-                        ),
-                        blurRadius: 24,
-                        offset: const Offset(0, 14),
-                      ),
-                    ],
-                  ),
-                  child: Row(
-                    children: <Widget>[
-                      Material(
-                        color: isDark
-                            ? const Color(0xFF0F172A)
-                            : const Color(0xFFF2F4F7),
-                        borderRadius: BorderRadius.circular(16),
-                        child: InkWell(
-                          borderRadius: BorderRadius.circular(16),
-                          onTap: widget.onBack ??
-                              () => Navigator.of(context).maybePop(),
-                          child: SizedBox(
-                            width: 46,
-                            height: 46,
-                            child: Icon(
-                              Icons.arrow_back_ios_new_rounded,
-                              color: textColor,
-                              size: 20,
-                            ),
-                          ),
-                        ),
-                      ),
-                      const SizedBox(width: 12),
-                      Container(
-                        width: 58,
-                        height: 58,
-                        decoration: BoxDecoration(
-                          borderRadius: BorderRadius.circular(20),
-                          gradient: const LinearGradient(
-                            colors: <Color>[
-                              Color(0xFF178F5B),
-                              Color(0xFF1A3C6E),
-                            ],
-                          ),
-                        ),
-                        child: const Icon(
-                          Icons.favorite_rounded,
-                          color: Colors.white,
-                          size: 30,
-                        ),
-                      ),
-                      const SizedBox(width: 16),
-                      Expanded(
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text(
-                              'Favorites',
-                              style: theme.textTheme.headlineSmall?.copyWith(
-                                color: textColor,
-                                fontWeight: FontWeight.w800,
-                              ),
-                            ),
-                            const SizedBox(height: 4),
-                            Text(
-                              '${favoritesProvider.favorites.length} saved houses',
-                              style: theme.textTheme.bodyMedium?.copyWith(
-                                color: textColor.withOpacity(0.58),
-                                fontWeight: FontWeight.w500,
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-                    ],
-                  ),
+          return Padding(
+            padding: const EdgeInsets.fromLTRB(16, 12, 16, 10),
+            child: Container(
+              padding: const EdgeInsets.all(20),
+              decoration: BoxDecoration(
+                borderRadius: BorderRadius.circular(28),
+                gradient: LinearGradient(
+                  begin: Alignment.topLeft,
+                  end: Alignment.bottomRight,
+                  colors: isDark
+                      ? const <Color>[
+                          Color(0xFF101625),
+                          Color(0xFF111E18),
+                        ]
+                      : const <Color>[Colors.white, Color(0xFFEFFDF5)],
                 ),
+                border: Border.all(
+                  color: isDark
+                      ? const Color(0xFF1E2D3B)
+                      : const Color(0xFFDCFCE7),
+                ),
+                boxShadow: <BoxShadow>[
+                  BoxShadow(
+                    color: Colors.black.withOpacity(
+                      isDark ? 0.22 : 0.06,
+                    ),
+                    blurRadius: 24,
+                    offset: const Offset(0, 14),
+                  ),
+                ],
+              ),
+              child: Row(
+                children: <Widget>[
+                  Material(
+                    color: isDark
+                        ? const Color(0xFF0F172A)
+                        : const Color(0xFFF2F4F7),
+                    borderRadius: BorderRadius.circular(16),
+                    child: InkWell(
+                      borderRadius: BorderRadius.circular(16),
+                      onTap:
+                          widget.onBack ?? () => Navigator.of(context).maybePop(),
+                      child: SizedBox(
+                        width: 46,
+                        height: 46,
+                        child: Icon(
+                          Icons.arrow_back_ios_new_rounded,
+                          color: textColor,
+                          size: 20,
+                        ),
+                      ),
+                    ),
+                  ),
+                  const SizedBox(width: 12),
+                  Container(
+                    width: 58,
+                    height: 58,
+                    decoration: BoxDecoration(
+                      borderRadius: BorderRadius.circular(20),
+                      gradient: const LinearGradient(
+                        colors: <Color>[
+                          Color(0xFF178F5B),
+                          Color(0xFF1A3C6E),
+                        ],
+                      ),
+                    ),
+                    child: const Icon(
+                      Icons.favorite_rounded,
+                      color: Colors.white,
+                      size: 30,
+                    ),
+                  ),
+                  const SizedBox(width: 16),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          'Favorites',
+                          style: theme.textTheme.headlineSmall?.copyWith(
+                            color: textColor,
+                            fontWeight: FontWeight.w800,
+                          ),
+                        ),
+                        const SizedBox(height: 4),
+                        Text(
+                          '${favoritesProvider.favorites.length} saved houses',
+                          style: theme.textTheme.bodyMedium?.copyWith(
+                            color: textColor.withOpacity(0.58),
+                            fontWeight: FontWeight.w500,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                  if (favoritesProvider.favorites.isNotEmpty) ...[
+                    const SizedBox(width: 8),
+                    Material(
+                      color: isDark
+                          ? const Color(0xFF0F172A)
+                          : const Color(0xFFF2F4F7),
+                      borderRadius: BorderRadius.circular(16),
+                      child: InkWell(
+                        borderRadius: BorderRadius.circular(16),
+                        onTap: () {
+                          _loadFavoriteProperties();
+                          HapticFeedback.mediumImpact();
+                        },
+                        child: SizedBox(
+                          width: 46,
+                          height: 46,
+                          child: Icon(
+                            Icons.refresh_rounded,
+                            color: textColor,
+                            size: 21,
+                          ),
+                        ),
+                      ),
+                    ),
+                  ],
+                ],
               ),
             ),
           );
@@ -861,141 +835,6 @@ class _FavoritesScreenState extends State<FavoritesScreen>
     );
   }
 
-  Widget _buildAnimatedFAB(BuildContext context, FavoritesProvider favoritesProvider, ThemeData theme, bool isDark) {
-    if (favoritesProvider.favorites.isEmpty) return const SizedBox.shrink();
-
-    return AnimatedBuilder(
-      animation: _fabAnimation,
-      builder: (context, child) {
-        return Transform.scale(
-          scale: _fabAnimation.value,
-          child: FloatingActionButton.extended(
-            onPressed: () {
-              _loadFavoriteProperties();
-              HapticFeedback.mediumImpact();
-            },
-            backgroundColor: theme.primaryColor,
-            foregroundColor: Colors.white,
-            elevation: 12,
-            label: const Text(
-              'Refresh',
-              style: TextStyle(fontWeight: FontWeight.w600),
-            ),
-            icon: const Icon(Icons.refresh_rounded),
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(20),
-            ),
-          ),
-        );
-      },
-    );
-  }
-
-  void _showClearAllDialog(BuildContext context, FavoritesProvider favoritesProvider, ThemeData theme) {
-    showDialog(
-      context: context,
-      barrierDismissible: false,
-      builder: (context) => AlertDialog(
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
-        backgroundColor: theme.dialogBackgroundColor,
-        title: Row(
-          children: [
-            Container(
-              padding: const EdgeInsets.all(8),
-              decoration: BoxDecoration(
-                color: Colors.orange.withOpacity(0.1),
-                borderRadius: BorderRadius.circular(12),
-              ),
-              child: Icon(
-                Icons.warning_amber_rounded,
-                color: Colors.orange[600],
-                size: 24,
-              ),
-            ),
-            const SizedBox(width: 16),
-            Expanded(
-              child: Text(
-                'Clear All Favorites',
-                style: theme.textTheme.titleLarge?.copyWith(
-                  fontWeight: FontWeight.bold,
-                ),
-              ),
-            ),
-          ],
-        ),
-        content: Padding(
-          padding: const EdgeInsets.only(top: 8),
-          child: Text(
-            'Are you sure you want to remove all properties from your favorites? This action cannot be undone.',
-            style: theme.textTheme.bodyLarge?.copyWith(
-              color: theme.textTheme.bodyLarge?.color?.withOpacity(0.8),
-              height: 1.5,
-            ),
-          ),
-        ),
-        actionsPadding: const EdgeInsets.fromLTRB(24, 0, 24, 24),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context),
-            style: TextButton.styleFrom(
-              foregroundColor: theme.textTheme.bodyLarge?.color?.withOpacity(0.7),
-              padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
-            ),
-            child: const Text('Cancel'),
-          ),
-          const SizedBox(width: 8),
-          ElevatedButton(
-            onPressed: () {
-              favoritesProvider.clearFavorites();
-              Navigator.pop(context);
-              setState(() {
-                _favoriteProperties = [];
-              });
-              HapticFeedback.mediumImpact();
-              
-              ScaffoldMessenger.of(context).showSnackBar(
-                SnackBar(
-                  content: Row(
-                    children: [
-                      Icon(
-                        Icons.check_circle_rounded,
-                        color: Colors.white,
-                        size: 20,
-                      ),
-                      const SizedBox(width: 12),
-                      const Text(
-                        'All favorites cleared successfully',
-                        style: TextStyle(fontWeight: FontWeight.w500),
-                      ),
-                    ],
-                  ),
-                  backgroundColor: theme.primaryColor,
-                  behavior: SnackBarBehavior.floating,
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(16),
-                  ),
-                  margin: const EdgeInsets.all(16),
-                  duration: const Duration(seconds: 3),
-                ),
-              );
-            },
-            style: ElevatedButton.styleFrom(
-              backgroundColor: Colors.red,
-              foregroundColor: Colors.white,
-              padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(12),
-              ),
-            ),
-            child: const Text(
-              'Clear All',
-              style: TextStyle(fontWeight: FontWeight.w600),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
 }
 
 // Custom painter for animated background pattern

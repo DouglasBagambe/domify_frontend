@@ -403,6 +403,35 @@ class _CompareScreenState extends State<CompareScreen>
                   ],
                 ),
               ),
+              if (count > 0) ...[
+                const SizedBox(width: 8),
+                Material(
+                  color: isDark
+                      ? const Color(0xFF0F172A)
+                      : const Color(0xFFF2F4F7),
+                  borderRadius: BorderRadius.circular(16),
+                  child: InkWell(
+                    borderRadius: BorderRadius.circular(16),
+                    onTap: () {
+                      Provider.of<CompareProvider>(context, listen: false)
+                          .clearCompare();
+                      setState(() {
+                        _error = null;
+                        _lastCompareIds = [];
+                      });
+                    },
+                    child: SizedBox(
+                      width: 46,
+                      height: 46,
+                      child: Icon(
+                        Icons.close_rounded,
+                        color: textColor,
+                        size: 21,
+                      ),
+                    ),
+                  ),
+                ),
+              ],
             ],
           ),
         ),

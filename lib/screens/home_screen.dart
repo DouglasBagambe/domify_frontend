@@ -1126,6 +1126,31 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
         ),
         Positioned(
           top: -5,
+          left: -5,
+          child: GestureDetector(
+            onTap: () => context.read<CompareProvider>().clearCompare(),
+            child: Container(
+              width: 22,
+              height: 22,
+              alignment: Alignment.center,
+              decoration: BoxDecoration(
+                color: Theme.of(context).colorScheme.error,
+                shape: BoxShape.circle,
+                border: Border.all(
+                  color: Theme.of(context).colorScheme.surface,
+                  width: 2,
+                ),
+              ),
+              child: const Icon(
+                Icons.close_rounded,
+                color: Colors.white,
+                size: 13,
+              ),
+            ),
+          ),
+        ),
+        Positioned(
+          top: -5,
           right: -5,
           child: Container(
             width: 22,
