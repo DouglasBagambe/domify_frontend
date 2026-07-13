@@ -173,17 +173,20 @@ class _FavoritesScreenState extends State<FavoritesScreen>
       builder: (context, favoritesProvider, child) {
         return Scaffold(
           backgroundColor: theme.scaffoldBackgroundColor,
-          body: CustomScrollView(
-            controller: _scrollController,
-            physics: const BouncingScrollPhysics(),
-            slivers: [
-              _buildAnimatedAppBar(context, favoritesProvider, theme, isDark),
-              if (favoritesProvider.favorites.isNotEmpty) ...[
-                _buildSearchAndFilter(context, theme, isDark),
-                _buildPropertiesContent(context, theme, isDark),
-              ] else
-                _buildEmptyState(context, theme, isDark),
-            ],
+          body: SafeArea(
+            bottom: false,
+            child: CustomScrollView(
+              controller: _scrollController,
+              physics: const BouncingScrollPhysics(),
+              slivers: [
+                _buildAnimatedAppBar(context, favoritesProvider, theme, isDark),
+                if (favoritesProvider.favorites.isNotEmpty) ...[
+                  _buildSearchAndFilter(context, theme, isDark),
+                  _buildPropertiesContent(context, theme, isDark),
+                ] else
+                  _buildEmptyState(context, theme, isDark),
+              ],
+            ),
           ),
         );
       },
